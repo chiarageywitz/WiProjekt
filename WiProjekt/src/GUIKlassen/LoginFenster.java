@@ -2,6 +2,8 @@ package GUIKlassen;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class LoginFenster extends JFrame {
 
@@ -10,19 +12,38 @@ public class LoginFenster extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 400);
         setLocationRelativeTo(null);
-        setLayout(null); // wir positionieren alles manuell, ähnlich DashboardStudent
+        setLayout(null);
+
+        getContentPane().setBackground(new Color(240, 240, 240));
 
         // =======================
-        // Hintergrundfarbe
+        // Hochschul-Logo oben mittig (proportional skaliert)
         // =======================
-        getContentPane().setBackground(new Color(240, 240, 240)); // helles Grau
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/GUIKlassen/hochschule.png"));
 
-        // =======================
-        // Hochschul-Logo oben mittig
-        // =======================
-        ImageIcon logo = new ImageIcon("hochschule.png"); // Pfad zu eurem Bild
-        JLabel logoLabel = new JLabel(logo);
-        logoLabel.setBounds(150, 20, 200, 100); // Logo-Größe und Position
+        // Zielgröße für Logo
+        int targetWidth = 200;
+        int targetHeight = 100;
+
+        // Originalgröße des Bildes
+        int originalWidth = originalIcon.getIconWidth();
+        int originalHeight = originalIcon.getIconHeight();
+
+        // Berechne Skalierung unter Beibehaltung des Seitenverhältnisses
+        double widthRatio = (double) targetWidth / originalWidth;
+        double heightRatio = (double) targetHeight / originalHeight;
+        double scale = Math.min(widthRatio, heightRatio);
+
+        int finalWidth = (int) (originalWidth * scale);
+        int finalHeight = (int) (originalHeight * scale);
+
+        Image scaledImage = originalIcon.getImage().getScaledInstance(finalWidth, finalHeight, Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+
+        JLabel logoLabel = new JLabel(scaledIcon);
+        // Mittig positionieren
+        int x = (getWidth() - finalWidth) / 2;
+        logoLabel.setBounds(x, 20, finalWidth, finalHeight);
         add(logoLabel);
 
         // =======================
@@ -50,11 +71,11 @@ public class LoginFenster extends JFrame {
         add(passField);
 
         // =======================
-        // Sign In Button
+        // Einloggen Button
         // =======================
         JButton loginButton = new JButton("Einloggen");
         loginButton.setBounds(180, 230, 140, 35);
-        loginButton.setBackground(new Color(0, 45, 150)); // Dunkelblau
+        loginButton.setBackground(new Color(0, 45, 150));
         loginButton.setForeground(Color.WHITE);
         loginButton.setFont(new Font("Arial", Font.BOLD, 14));
         loginButton.setFocusPainted(false);
@@ -63,29 +84,38 @@ public class LoginFenster extends JFrame {
         add(loginButton);
 
         // =======================
-        // New User Label unten
+        // Neuer Benutzer Label
         // =======================
         JLabel newUserLabel = new JLabel("<HTML><U>Neuer Benutzer?</U></HTML>");
         newUserLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         newUserLabel.setForeground(new Color(0, 45, 150));
         newUserLabel.setBounds(200, 290, 150, 25);
+        newUserLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         add(newUserLabel);
 
         // =======================
-        // ActionListener für Login
+        // ActionListener Login
         // =======================
         loginButton.addActionListener(e -> {
             String user = userField.getText();
             String pass = new String(passField.getPassword());
 
-            // Dummy-Login
             if (user.equals("admin") && pass.equals("1234")) {
                 JOptionPane.showMessageDialog(null, "Login erfolgreich!");
-                // Hier könnt ihr z.B. DashboardStudent starten:
-                new DashboardStudent();
-                dispose(); // Login-Fenster schließen
+                new DashboardStudent(); // Dashboard öffnen
+                dispose();
             } else {
                 JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!");
+            }
+        });
+
+        // =======================
+        // Neuer Benutzer Action
+        // =======================
+        newUserLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                new NeuerBenutzerFenster(); // Neues Fenster für Benutzererstellung öffnen
             }
         });
 
