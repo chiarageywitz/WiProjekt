@@ -5,72 +5,94 @@ import java.awt.*;
 
 public class LoginFenster extends JFrame {
 
-	public LoginFenster() {
-		setTitle("Login");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(400, 250);
-		setLocationRelativeTo(null);
+    public LoginFenster() {
+        setTitle("Login - Hochschule");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(500, 400);
+        setLocationRelativeTo(null);
+        setLayout(null); // wir positionieren alles manuell, ähnlich DashboardStudent
 
-		JPanel panel = new JPanel(new GridBagLayout());
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(10, 10, 10, 10);
+        // =======================
+        // Hintergrundfarbe
+        // =======================
+        getContentPane().setBackground(new Color(240, 240, 240)); // helles Grau
 
-		ImageIcon logo = new ImageIcon();
-		JLabel logoLabel = new JLabel(logo);
+        // =======================
+        // Hochschul-Logo oben mittig
+        // =======================
+        ImageIcon logo = new ImageIcon("hochschule.png"); // Pfad zu eurem Bild
+        JLabel logoLabel = new JLabel(logo);
+        logoLabel.setBounds(150, 20, 200, 100); // Logo-Größe und Position
+        add(logoLabel);
 
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.gridwidth = 2;
-		gbc.anchor = GridBagConstraints.CENTER;
-		panel.add(logoLabel, gbc);
+        // =======================
+        // Benutzername
+        // =======================
+        JLabel userLabel = new JLabel("Benutzername:");
+        userLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        userLabel.setBounds(100, 140, 120, 25);
+        add(userLabel);
 
-		JLabel userLabel = new JLabel("Benutzername:");
-		gbc.gridx = 1;
-		gbc.gridy = 1;
-		gbc.gridwidth = 2;
-		gbc.anchor = GridBagConstraints.WEST;
-		panel.add(userLabel, gbc);
+        JTextField userField = new JTextField();
+        userField.setBounds(220, 140, 180, 25);
+        add(userField);
 
-		JTextField userField = new JTextField(15);
-		gbc.gridx = 1;
-		panel.add(userField, gbc);
+        // =======================
+        // Passwort
+        // =======================
+        JLabel passLabel = new JLabel("Passwort:");
+        passLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        passLabel.setBounds(100, 180, 120, 25);
+        add(passLabel);
 
-		JLabel passLabel = new JLabel("Passwort:");
-		gbc.gridx = 0;
-		gbc.gridy = 2;
-		panel.add(passLabel, gbc);
+        JPasswordField passField = new JPasswordField();
+        passField.setBounds(220, 180, 180, 25);
+        add(passField);
 
-		JPasswordField passField = new JPasswordField(15);
-		gbc.gridx = 1;
-		panel.add(passField, gbc);
+        // =======================
+        // Sign In Button
+        // =======================
+        JButton loginButton = new JButton("Einloggen");
+        loginButton.setBounds(180, 230, 140, 35);
+        loginButton.setBackground(new Color(0, 45, 150)); // Dunkelblau
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
+        loginButton.setFocusPainted(false);
+        loginButton.setOpaque(true);
+        loginButton.setBorderPainted(false);
+        add(loginButton);
 
-		JButton loginButton = new JButton("Einloggen");
-		gbc.gridx = 0;
-		gbc.gridy = 3;
-		gbc.gridwidth = 2;
-		gbc.anchor = GridBagConstraints.CENTER;
-		panel.add(loginButton, gbc);
+        // =======================
+        // New User Label unten
+        // =======================
+        JLabel newUserLabel = new JLabel("<HTML><U>Neuer Benutzer?</U></HTML>");
+        newUserLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        newUserLabel.setForeground(new Color(0, 45, 150));
+        newUserLabel.setBounds(200, 290, 150, 25);
+        add(newUserLabel);
 
-		add(panel);
-		
-		loginButton.addActionListener(e -> {
-		    String user = userField.getText();
-		    String pass = new String(passField.getPassword());
+        // =======================
+        // ActionListener für Login
+        // =======================
+        loginButton.addActionListener(e -> {
+            String user = userField.getText();
+            String pass = new String(passField.getPassword());
 
-		    if(user.equals("admin") && pass.equals("1234")) {
-		        JOptionPane.showMessageDialog(null, "Login erfolgreich!");
-		    } else {
-		        JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!");
-		    }
-		});
-	}
+            // Dummy-Login
+            if (user.equals("admin") && pass.equals("1234")) {
+                JOptionPane.showMessageDialog(null, "Login erfolgreich!");
+                // Hier könnt ihr z.B. DashboardStudent starten:
+                new DashboardStudent();
+                dispose(); // Login-Fenster schließen
+            } else {
+                JOptionPane.showMessageDialog(null, "Benutzername oder Passwort falsch!");
+            }
+        });
 
-	public static void main(String[] args) {
+        setVisible(true);
+    }
 
-		SwingUtilities.invokeLater(() -> {
-			new LoginFenster().setVisible(true);
-		});
-
-	}
-
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(LoginFenster::new);
+    }
 }
