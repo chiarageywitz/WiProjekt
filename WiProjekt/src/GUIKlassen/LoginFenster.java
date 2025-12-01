@@ -1,4 +1,4 @@
-package Fachobjekte;
+package GUIKlassen;
 
 import javax.swing.*;
 import java.awt.*;
