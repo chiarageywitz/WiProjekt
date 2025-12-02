@@ -68,8 +68,7 @@ public class AnmeldungBachelorarbeit extends JFrame {
                         + "2. Die Bachelorarbeit muss mit meinen eigenen Worten ohne die Hilfe Dritter angefertigt werden.\n\n"
                         + "3. Ich bin verpflichtet, alle verwendeten, relevanten Hilfen und Quellen anzugeben.\n\n"
                         + "4. Ich muss meine Bachelorarbeit in meinem Abschlussvortrag präsentieren.\n\n"
-                        + "5. Die Bachelorarbeit muss zu dem oben genannten Abgabetermin beim Vorsitzenden des "
-                        + "Prüfungsausschusses eingereicht werden.\n\n"
+                        + "5. Die Bachelorarbeit muss zu dem vom Vorsitzenden des Prüfungsausschusses festgelegten Abgabetermin eingereicht werden.\n\n"
                         + "6. Es müssen drei Fassungen der Bachelorarbeit in gebundener Papierform, keine Spiralbindung, abgegeben werden.\n\n"
                         + "7. Ich bin damit einverstanden, dass die HFT Stuttgart die Ergebnisse dieser Bachelorarbeit "
                         + "unentgeltlich benutzt und die Forschung und Lehre weiterentwickeln darf.";
