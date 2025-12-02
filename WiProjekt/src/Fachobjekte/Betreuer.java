@@ -5,7 +5,7 @@ public class Betreuer {
 	private String benutzername;
 	private String passwort;
 
-	public Betreuer(String benutzername, String passwort, String matrikelnummer) {
+	public Betreuer(String benutzername, String passwort) {
 		this.benutzername = benutzername;
 		this.passwort = passwort;
 	}

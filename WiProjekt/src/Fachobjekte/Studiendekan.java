@@ -4,7 +4,7 @@ public class Studiendekan {
 	private String benutzername;
 	private String passwort;
 
-	public Studiendekan(String benutzername, String passwort, String matrikelnummer) {
+	public Studiendekan(String benutzername, String passwort) {
 		this.benutzername = benutzername;
 		this.passwort = passwort;
 	}
