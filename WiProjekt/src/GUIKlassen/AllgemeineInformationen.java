@@ -1,102 +1,130 @@
 package GUIKlassen;
-
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
-public class AllgemeineInformationen extends JFrame {
+public class AllgemeineInformationen extends JPanel {
+	 private static final long serialVersionUID = 1L;
 
-    public AllgemeineInformationen() {
-        setTitle("Allgemeine Informationen");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(900, 500);
-        setLocationRelativeTo(null);
+    public AllgemeineInformationen() { 
+
         setLayout(null);
-        getContentPane().setBackground(new Color(240, 240, 240));
+        setBackground(Color.WHITE);
+        setBorder(BorderFactory.createLineBorder(new Color(180, 180, 180), 2));
 
-        JPanel formPanel = new JPanel(null);
-        formPanel.setBounds(50, 30, 800, 400);
-        formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-        add(formPanel);
+        // ===== Titel =====
+        JLabel title = new JLabel("Allgemeine Informationen");
+        title.setOpaque(true);
+        title.setBackground(new Color(0, 102, 204));
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("Arial", Font.BOLD, 16));
+        title.setBounds(10, 0, 280, 35);   // Nicht mehr abgeschnitten
+        add(title);
 
-        JLabel titleLabel = new JLabel("Allgemeine Informationen", SwingConstants.CENTER);
-        titleLabel.setOpaque(true);
-        titleLabel.setBackground(new Color(0, 45, 150));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        titleLabel.setBounds(0, 0, 800, 50);
-        formPanel.add(titleLabel);
+        int y = 50;
 
-        // Felder mit Rahmen
-        createField(formPanel, "Thema:", 70);
-        createField(formPanel, "Unternehmen / Ort:", 120);
-        createField(formPanel, "Zeitraum:", 170);
-        createField(formPanel, "Betreuer Hochschule:", 220);
-        createField(formPanel, "Betreuer Unternehmen:", 270);
+        addField("Thema:", y);                         y += 60;
+        addField("Unternehmen, Ort:", y);              y += 60;
+        addField("Zeitraum:", y);                      y += 60;
+        addField("Betreuer an der HFT:", y);           y += 60;
+        addField("Betreuer im Unternehmen:", y);       y += 60;
 
-        JLabel ndaLabel = new JLabel("NDA nötig?");
-        ndaLabel.setBounds(20, 320, 120, 25);
-        ndaLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        formPanel.add(ndaLabel);
+        // ===== NDA nötig =====
+        JLabel ndaLabel = new JLabel("NDA nötig?:");
+        ndaLabel.setFont(new Font("Arial", Font.PLAIN, 13));
+        ndaLabel.setBounds(20, y, 150, 30);
+        add(ndaLabel);
 
-        JCheckBox ndaCheckbox = new JCheckBox();
-        ndaCheckbox.setBounds(140, 320, 20, 25);
-        formPanel.add(ndaCheckbox);
+        JCheckBox ja = new JCheckBox("Ja");
+        ja.setBounds(140, y, 50, 30);
 
-        JButton uploadBtn = new JButton("Upload NDA");
-        uploadBtn.setBounds(180, 320, 120, 25);
-        uploadBtn.setBackground(new Color(0, 45, 150));
-        uploadBtn.setForeground(Color.WHITE);
-        uploadBtn.setFocusPainted(false);
-        uploadBtn.setOpaque(true);
-        uploadBtn.setBorderPainted(false);
-        formPanel.add(uploadBtn);
+        JCheckBox nein = new JCheckBox("Nein");
+        nein.setBounds(200, y, 60, 30);
 
-        JButton submitBtn = new JButton("Absenden");
-        submitBtn.setBounds(650, 320, 120, 35);
-        submitBtn.setBackground(new Color(0, 45, 150));
-        submitBtn.setForeground(Color.WHITE);
-        submitBtn.setFont(new Font("Arial", Font.BOLD, 14));
-        submitBtn.setFocusPainted(false);
-        submitBtn.setOpaque(true);
-        submitBtn.setBorderPainted(false);
-        formPanel.add(submitBtn);
+        ja.addActionListener(e -> { if (ja.isSelected()) nein.setSelected(false); });
+        nein.addActionListener(e -> { if (nein.isSelected()) ja.setSelected(false); });
 
-        submitBtn.addActionListener(e -> JOptionPane.showMessageDialog(this, "Informationen gespeichert!"));
+        add(ja);
+        add(nein);
 
-        setVisible(true);
+        y += 60;
+
+        // ========= Upload ==========
+        JLabel uploadLabel = new JLabel("NDA Upload:");
+        uploadLabel.setFont(new Font("Arial", Font.PLAIN, 13));
+        uploadLabel.setBounds(20, y, 200, 20);
+        add(uploadLabel);
+
+        JTextField uploadField = new JTextField();
+        uploadField.setBounds(20, y + 25, 330, 35);
+        uploadField.setEditable(false);
+        add(uploadField);
+
+        // EXTRA GROẞER BUTTON – NICHTS ABGESCHNITTEN
+        JButton uploadButton = new JButton("Datei auswählen (Upload)");
+        uploadButton.setBounds(360, y + 25, 220, 40); // großer Button
+        uploadButton.setBackground(new Color(0, 102, 204));
+        uploadButton.setForeground(Color.WHITE);
+        uploadButton.setFont(new Font("Arial", Font.BOLD, 12));
+        uploadButton.setBorderPainted(false);
+        uploadButton.setOpaque(true);
+        add(uploadButton);
+
+        uploadButton.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("NDA auswählen");
+
+            int result = chooser.showOpenDialog(this);
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                uploadField.setText(file.getAbsolutePath());
+            }
+        });
+
+        y += 100;
+
+        // ===== Absenden =====
+        JButton submitButton = new JButton("Absenden");
+        submitButton.setBounds(20, y, 150, 40);
+        submitButton.setBackground(new Color(0, 70, 160));
+        submitButton.setForeground(Color.WHITE);
+        submitButton.setBorderPainted(false);
+        submitButton.setOpaque(true);
+        submitButton.setFont(new Font("Arial", Font.BOLD, 14));
+        add(submitButton);
     }
 
-    private void createField(JPanel panel, String labelText, int yPosition) {
-        // Container für Feld + Stift
-        JPanel fieldPanel = new JPanel(null);
-        fieldPanel.setBounds(20, yPosition, 760, 35);
-        fieldPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1)); // dünner schwarzer Rand
-        panel.add(fieldPanel);
+    // ===========================================
+    // Textfeld + Bearbeiten-Button
+    // ===========================================
+    private void addField(String labelName, int y) {
 
-        JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Arial", Font.BOLD, 14));
-        label.setBounds(5, 5, 150, 25);
-        fieldPanel.add(label);
+        JLabel label = new JLabel(labelName);
+        label.setFont(new Font("Arial", Font.PLAIN, 13));
+        label.setBounds(20, y, 200, 20);
+        add(label);
 
-        JTextField textField = new JTextField();
-        textField.setBounds(160, 5, 580, 25);
-        textField.setEditable(false);
-        fieldPanel.add(textField);
+        JTextField field = new JTextField();
+        field.setBounds(20, y + 20, 330, 35);
+        add(field);
 
-        ImageIcon icon = new ImageIcon("stift.png");
-        Image img = icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-        icon = new ImageIcon(img);
-        JButton editBtn = new JButton(icon);
-        editBtn.setBounds(600, 5, 25, 25);
-        editBtn.setContentAreaFilled(false);
-        editBtn.setBorderPainted(false);
-        fieldPanel.add(editBtn);
-
-        editBtn.addActionListener(e -> textField.setEditable(true));
+        JButton editButton = new JButton("Bearbeiten");
+        editButton.setBounds(360, y + 20, 220, 35);   // breiter → VOLL sichtbar
+        editButton.setBackground(new Color(0, 102, 204));
+        editButton.setForeground(Color.WHITE);
+        editButton.setBorderPainted(false);
+        editButton.setOpaque(true);
+        add(editButton);
     }
 
+    // ===== Test =====
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(AllgemeineInformationen::new);
+        JFrame frame = new JFrame("Formular");
+        frame.setSize(620, 750);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.add(new AllgemeineInformationen());
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
     }
 }
