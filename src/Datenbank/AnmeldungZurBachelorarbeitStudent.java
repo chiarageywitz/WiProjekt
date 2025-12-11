@@ -1,0 +1,193 @@
+package Datenbank;
+import javax.swing.*;
+import java.awt.*;
+import javax.swing.text.MaskFormatter;
+import Datenbank.DashboardStudent;
+
+public class AnmeldungZurBachelorarbeitStudent extends JFrame {
+
+    public AnmeldungZurBachelorarbeitStudent() {
+
+        setTitle("Anmeldung der Bachelorarbeit");
+        setSize(750, 850);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        setLayout(new BorderLayout());
+
+        Color hftBlue = new Color(0, 102, 204);
+
+        // ---------- TITEL ----------
+        JLabel title = new JLabel("Anmeldung der Bachelorarbeit");
+        title.setFont(new Font("Arial", Font.BOLD, 26));
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+        title.setOpaque(true);
+        title.setBackground(hftBlue);
+        title.setForeground(Color.WHITE);
+        title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        add(title, BorderLayout.NORTH);
+
+        // ---------- MITTE PANEL ----------
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(20,40,20,40));
+        centerPanel.setBackground(Color.WHITE);
+
+        // ---------- FRAGE JA/NEIN ----------
+        JLabel frage = new JLabel(
+                "Darf die HFT den Titel deiner Bachelorarbeit und deinen Namen veröffentlichen?"
+        );
+        frage.setFont(new Font("Arial", Font.PLAIN, 16));
+        frage.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JRadioButton jaBtn = new JRadioButton("Ja");
+        JRadioButton neinBtn = new JRadioButton("Nein");
+        jaBtn.setBackground(Color.WHITE);
+        neinBtn.setBackground(Color.WHITE);
+
+        ButtonGroup gruppe = new ButtonGroup();
+        gruppe.add(jaBtn);
+        gruppe.add(neinBtn);
+
+        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        radioPanel.setBackground(Color.WHITE);
+        radioPanel.add(jaBtn);
+        radioPanel.add(neinBtn);
+        radioPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // ---------- BEDINGUNGEN ----------
+        JLabel bedTitel = new JLabel("Bedingungen der Bachelorarbeit:");
+        bedTitel.setFont(new Font("Arial", Font.BOLD, 16));
+        bedTitel.setOpaque(true);
+        bedTitel.setBackground(hftBlue);
+        bedTitel.setForeground(Color.WHITE);
+        bedTitel.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
+        bedTitel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        String bedingungenText =
+                "1. Der erlaubte Zeitraum für die Bearbeitung beträgt drei Monate. Der Vorsitzende des "
+                        + "Prüfungsausschusses legt den Ausgabetermin und den Abgabetermin fest.\n\n"
+                        + "2. Die Bachelorarbeit muss mit meinen eigenen Worten ohne die Hilfe Dritter angefertigt werden.\n\n"
+                        + "3. Ich bin verpflichtet, alle verwendeten, relevanten Hilfen und Quellen anzugeben.\n\n"
+                        + "4. Ich muss meine Bachelorarbeit in meinem Abschlussvortrag präsentieren.\n\n"
+                        + "5. Die Bachelorarbeit muss zu dem vom Vorsitzenden des Prüfungsausschusses festgelegten Abgabetermin eingereicht werden.\n\n"
+                        + "6. Es müssen drei Fassungen der Bachelorarbeit in gebundener Papierform, keine Spiralbindung, abgegeben werden.\n\n"
+                        + "7. Ich bin damit einverstanden, dass die HFT Stuttgart die Ergebnisse dieser Bachelorarbeit "
+                        + "unentgeltlich benutzt und die Forschung und Lehre weiterentwickeln darf.";
+
+        JTextArea textArea = new JTextArea(bedingungenText);
+        textArea.setEditable(false);
+        textArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+
+        JScrollPane scroll = new JScrollPane(textArea);
+        scroll.setPreferredSize(new Dimension(650, 220));
+        scroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // ---------- CHECKBOX ----------
+        JCheckBox akzeptiert = new JCheckBox(
+                "Ich erkläre, dass ich die Bedingungen zur Bachelorarbeit gelesen und akzeptiert habe."
+        );
+        akzeptiert.setBackground(Color.WHITE);
+        akzeptiert.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // ---------- DATUM ----------
+        JLabel datumLabel = new JLabel("Datum der Anmeldung:");
+        datumLabel.setFont(new Font("Arial", Font.PLAIN, 15));
+        datumLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JFormattedTextField datumFeld = null;
+        try {
+            MaskFormatter datumFormatter = new MaskFormatter("##.##.####");
+            datumFormatter.setPlaceholderCharacter('_'); // Unterstriche statt TT.MM.JJJJ
+            datumFeld = new JFormattedTextField(datumFormatter);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        datumFeld.setPreferredSize(new Dimension(200, 30));
+
+        JPanel datumPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        datumPanel.setBackground(Color.WHITE);
+        datumPanel.add(datumLabel);
+        datumPanel.add(datumFeld);
+        datumPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // ---------- HINWEIS ----------
+        JLabel hinweis = new JLabel(
+                "Nach dem Absenden wird Ihr Betreuer automatisch benachrichtigt."
+        );
+        hinweis.setFont(new Font("Arial", Font.ITALIC, 14));
+        hinweis.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        hinweis.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // ---------- BOTTOM BUTTONS ----------
+        JButton zurueckBtn = new JButton("Zurück zur Übersicht");
+        
+        zurueckBtn.addActionListener(e -> {
+            new DashboardStudent(4711);   // ✅ Dashboard neu öffnen
+            dispose();                    // ✅ Dieses Fenster schließen
+        });
+        
+        
+        JButton absendenBtn = new JButton("Anmeldeformular absenden");
+        absendenBtn.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this,
+                "Ihre Anmeldung zur Bachelorarbeit wurde erfolgreich übermittelt!",
+                "Erfolg",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+
+            new DashboardStudent(4711);   // ✅ Zurück zum Dashboard
+            dispose();                   // ✅ Dieses Fenster schließen
+        });
+        
+
+        zurueckBtn.setBackground(hftBlue);
+        zurueckBtn.setForeground(Color.WHITE);
+        zurueckBtn.setOpaque(true);
+        zurueckBtn.setBorderPainted(false);
+        zurueckBtn.setFocusPainted(false);
+
+        absendenBtn.setBackground(hftBlue);
+        absendenBtn.setForeground(Color.WHITE);
+        absendenBtn.setOpaque(true);
+        absendenBtn.setBorderPainted(false);
+        absendenBtn.setFocusPainted(false);
+
+        zurueckBtn.setPreferredSize(new Dimension(220, 45));
+        absendenBtn.setPreferredSize(new Dimension(280, 45)); 
+
+        JPanel bottomBtnPanel = new JPanel(new BorderLayout());
+        bottomBtnPanel.setBackground(Color.WHITE);
+        bottomBtnPanel.add(zurueckBtn, BorderLayout.WEST);
+        bottomBtnPanel.add(absendenBtn, BorderLayout.EAST);
+        bottomBtnPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+
+        // ---------- ADD PANELS ----------
+        centerPanel.add(frage);
+        centerPanel.add(radioPanel);
+        centerPanel.add(Box.createVerticalStrut(15));
+
+        centerPanel.add(bedTitel);
+        centerPanel.add(scroll);
+        centerPanel.add(Box.createVerticalStrut(10));
+
+        centerPanel.add(akzeptiert);
+        centerPanel.add(Box.createVerticalStrut(15));
+
+        centerPanel.add(datumPanel);
+        centerPanel.add(Box.createVerticalStrut(15));
+
+        centerPanel.add(hinweis);
+
+        add(centerPanel, BorderLayout.CENTER);
+        add(bottomBtnPanel, BorderLayout.SOUTH);
+
+        setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        new AnmeldungZurBachelorarbeitStudent();
+    }
+}
