@@ -1,6 +1,7 @@
-package Datenbank;
+package GUIKlassen;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;

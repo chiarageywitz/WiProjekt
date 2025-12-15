@@ -1,4 +1,4 @@
-package Datenbank;
+package GUIKlassen;
 
 import javax.swing.SwingUtilities;
 

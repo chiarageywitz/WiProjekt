@@ -1,17 +1,24 @@
-package Datenbank;
+package GUIKlassen;
 
+import Datenbank.DBConnection;
 import javax.swing.*;
+
 import java.awt.*;
+import java.sql.*;
 
-public class AnsichtStudent extends JFrame {
+public class DashboardStudent extends JFrame {
 
-    public AnsichtStudent() {
+    private int mnr;
+    
+    public DashboardStudent(int mnr) {
+    	this.mnr = mnr;
 
         setTitle("Ansicht Student");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1100, 650);
         setLocationRelativeTo(null);
         setLayout(null);
+       
 
         // =======================
         // AUSLOGGEN BUTTON (oben rechts)
@@ -89,11 +96,42 @@ public class AnsichtStudent extends JFrame {
         // =======================
         // ACTION HINZUFÜGEN
         // =======================
-        btnInfo.addActionListener(e -> System.out.println("INFO-Fenster öffnen…"));
-        btnAnmeldung.addActionListener(e -> System.out.println("Anmeldung öffnen…"));
-        btnAbgabe.addActionListener(e -> System.out.println("Abgabe öffnen…"));
-        logoutBtn.addActionListener(e -> System.out.println("Logout…"));
+        
+        btnInfo.addActionListener(e -> {
+            JFrame frame = new JFrame("Allgemeine Informationen");
+            frame.setSize(650, 750);
+            frame.setLocationRelativeTo(null);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            frame.add(new AllgemeineInformationenStudent());
+            frame.setVisible(true);
 
+            dispose(); // ✅ Dashboard schließen
+        });
+        
+        btnAnmeldung.addActionListener(e -> {
+            new AnmeldungZurBachelorarbeitStudent();
+            dispose(); // ✅ Dashboard schließen
+        });
+        
+        btnAbgabe.addActionListener(e -> {
+            JFrame frame = new JFrame("Abgabe Bachelorarbeit");
+            frame.setSize(560, 600);
+            frame.setLocationRelativeTo(null);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            frame.add(new AbgabeBachelorarbeit());
+            frame.setVisible(true);
+
+            dispose(); // ✅ Dashboard schließen
+        });
+        
+            
+            logoutBtn.addActionListener(e -> {
+                new LoginFenster();  // ✅ Login neu öffnen
+                dispose();          // ✅ Dashboard schließen
+            });
+        
+        
+        ladeStudentDaten();
         setVisible(true);
     }
 
@@ -123,6 +161,30 @@ public class AnsichtStudent extends JFrame {
     // MAIN zum Starten
     // =======================
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(AnsichtStudent::new);
+        SwingUtilities.invokeLater(() -> new DashboardStudent(4711));
+    }
+    private void ladeStudentDaten() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM studentendb WHERE MNR = ?"
+            );
+            ps.setInt(1, mnr);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String vorname = rs.getString("Vorname");
+                String nachname = rs.getString("Nachname");
+                String email = rs.getString("email");
+            }
+
+            conn.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Fehler beim Laden der Studentendaten!");
+        }
     }
 }

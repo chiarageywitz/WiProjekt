@@ -1,8 +1,8 @@
-package Datenbank;
-import javax.swing.*; 
+package GUIKlassen;
+import javax.swing.*;
+
 import java.awt.*;
 import java.io.File;
-import Datenbank.DashboardStudent;
 
 public class AbgabeBachelorarbeit extends JPanel {
 

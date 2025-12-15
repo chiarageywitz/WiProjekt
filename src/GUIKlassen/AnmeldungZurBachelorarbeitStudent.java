@@ -1,8 +1,7 @@
-package Datenbank;
+package GUIKlassen;
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.text.MaskFormatter;
-import Datenbank.DashboardStudent;
 
 public class AnmeldungZurBachelorarbeitStudent extends JFrame {
 
