@@ -161,7 +161,7 @@ public class DashboardStudent extends JFrame {
     // MAIN zum Starten
     // =======================
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new DashboardStudent(4711));
+        SwingUtilities.invokeLater(() -> new DashboardStudent(4711));  // TODO: mnr aus Login übernehmen
     }
     private void ladeStudentDaten() {
         try {
