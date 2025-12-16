@@ -11,6 +11,11 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
+<<<<<<< HEAD
 	<classpathentry kind="lib" path="/Users/anastasiiabiliakova/Downloads/mysql-connector-java-8.0.19.jar"/>
+=======
+	<classpathentry kind="lib" path="C:/Users/Ngoc Bao Chi Phan/Downloads/mysql-connector-java-8.0.19.jar"/>
+	<classpathentry kind="lib" path="/Users/chiarageywitz/Library/Mobile Documents/com~apple~CloudDocs/Downloads/mysql-connector-java-8.0.19.jar"/>
+>>>>>>> branch 'master' of https://github.com/chiarageywitz/WiProjekt.git
 	<classpathentry kind="output" path="bin"/>
 </classpath>
