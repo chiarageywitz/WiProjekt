@@ -102,7 +102,7 @@ public class DashboardStudent extends JFrame {
             frame.setSize(650, 750);
             frame.setLocationRelativeTo(null);
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.add(new AllgemeineInformationenStudent());
+            frame.add(new AllgemeineInformationenStudent(mnr));
             frame.setVisible(true);
 
             dispose(); // ✅ Dashboard schließen
