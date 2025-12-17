@@ -141,10 +141,7 @@ public class DashboardStudiendekan extends JFrame {
         p3Inner.add(Box.createVerticalGlue()); // unten flexible Lücke für Zentrierung
         pFunk.add(p3Inner, BorderLayout.CENTER);
         
-        noteneingabeBtn.addActionListener(e -> {
-            new Noteneingabe(0, "dekan");
-            dispose();
-        });
+
 
 
         // --- 4) Portal-Benachrichtigungen ---

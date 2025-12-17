@@ -11,47 +11,42 @@ public class StudentDAO {
     // ---------------- STUDENT INFO CLASS ----------------
     public static class StudentInfo {
         public int mnr;
-        public String vorname;
-        public String nachname;
+        public String name;   // ✅ nur EIN Name
         public String thema;
 
-        public StudentInfo(int mnr, String vorname, String nachname, String thema) {
+        public StudentInfo(int mnr, String name, String thema) {
             this.mnr = mnr;
-            this.vorname = vorname;
-            this.nachname = nachname;
+            this.name = name;
             this.thema = thema;
         }
 
         @Override
         public String toString() {
-            // Darstellung in der JList
-            return vorname + " " + nachname + " (" + mnr + ")";
+            return name + " (" + mnr + ")";
         }
     }
 
     // ---------------- STUDENTEN SUCHE ----------------
     public static List<StudentInfo> sucheStudenten(String name) throws Exception {
         List<StudentInfo> result = new ArrayList<>();
+
         String sql = """
-            SELECT s.MNR, s.Vorname, s.Nachname, a.thema
+            SELECT s.MNR, s.Vorname, a.thema
             FROM studentendb s
             LEFT JOIN allgemeine_informationen a ON s.MNR = a.mnr
-            WHERE s.Vorname LIKE ? OR s.Nachname LIKE ?
+            WHERE s.Vorname LIKE ?
         """;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            String pattern = "%" + name + "%";
-            ps.setString(1, pattern);
-            ps.setString(2, pattern);
+            ps.setString(1, "%" + name + "%");
 
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 result.add(new StudentInfo(
                         rs.getInt("MNR"),
-                        rs.getString("Vorname"),
-                        rs.getString("Nachname"),
+                        rs.getString("Vorname"), // ✅ Benutzername
                         rs.getString("thema")
                 ));
             }
@@ -63,7 +58,7 @@ public class StudentDAO {
     // ---------------- EINZELNER STUDENT ----------------
     public static StudentInfo getStudentInfo(int mnr) throws Exception {
         String sql = """
-            SELECT s.MNR, s.Vorname, s.Nachname, a.thema
+            SELECT s.MNR, s.Vorname, a.thema
             FROM studentendb s
             LEFT JOIN allgemeine_informationen a ON s.MNR = a.mnr
             WHERE s.MNR = ?
@@ -75,16 +70,15 @@ public class StudentDAO {
 
             ps.setInt(1, mnr);
             ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
                 return new StudentInfo(
                         rs.getInt("MNR"),
                         rs.getString("Vorname"),
-                        rs.getString("Nachname"),
                         rs.getString("thema")
                 );
-            } else {
-                return null;
             }
+            return null;
         }
     }
 }

@@ -10,10 +10,13 @@ public class Noteneingabe extends JFrame {
 
     private final int mnr;
     private final String rolle;
+    private final StudentInfo student; // Neues Feld für StudentInfo
 
-    public Noteneingabe(int mnr, String rolle) {
-        this.mnr = mnr;
+    // Konstruktor angepasst, um StudentInfo zu übergeben
+    public Noteneingabe(StudentInfo student, String rolle) {
+        this.student = student;
         this.rolle = rolle.toLowerCase();
+        this.mnr = student.mnr; // mnr aus StudentInfo
 
         setTitle("Noteneingabe");
         setSize(700, 320);
@@ -83,7 +86,7 @@ public class Noteneingabe extends JFrame {
         JButton zurückBtn = new JButton("Zurück");
         zurückBtn.setBounds(180, y, 140, 35);
         zurückBtn.addActionListener(e -> {
-            new DashboardBetreuer();
+            new DashboardBetreuerView(student); // Dashboard mit StudentInfo öffnen
             dispose();
         });
 
@@ -108,3 +111,4 @@ public class Noteneingabe extends JFrame {
         }
     }
 }
+

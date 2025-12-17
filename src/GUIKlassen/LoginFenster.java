@@ -4,13 +4,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import Datenbank.UserDAO; 
+
+import Datenbank.UserDAO;
 import Datenbank.UserLoginResult;
 import Util.UIColors;
 import Util.UIImageLoader;
-
-
-
 
 public class LoginFenster extends JFrame {
 
@@ -23,21 +21,16 @@ public class LoginFenster extends JFrame {
 
         getContentPane().setBackground(UIColors.BACKGROUND);
 
-     // =======================
-     // Hochschul-Logo oben mittig (STABIL)
-     // =======================
-
+        // =======================
+        // Hochschul-Logo
+        // =======================
         add(UIImageLoader.createLogoLabel(150, 20, 200, 100));
-        
-     // =========================
-     // FENSTERBREITE FESTLEGEN
-     // =========================
-     int windowWidth = 500; // muss zu setSize(500, 400) passen
 
-        
-     // =========================
-        // FORMULAR-AUSRICHTUNG (HIER!)
-        // =========================
+        int windowWidth = 500;
+
+        // =======================
+        // Formular-Layout
+        // =======================
         int formWidth = 300;
         int labelWidth = 100;
         int fieldWidth = 180;
@@ -46,7 +39,6 @@ public class LoginFenster extends JFrame {
         int labelX = startX;
         int fieldX = startX + labelWidth + 10;
 
-        
         // =======================
         // E-Mail
         // =======================
@@ -74,18 +66,17 @@ public class LoginFenster extends JFrame {
         add(passField);
 
         // =======================
-        // Einloggen Button
+        // Login Button
         // =======================
         JButton loginButton = new JButton("Einloggen");
         y += 60;
-
         loginButton.setBounds(
-            startX + (formWidth - 140) / 2,
-            y,
-            140,
-            35
+                startX + (formWidth - 140) / 2,
+                y,
+                140,
+                35
         );
-      
+
         loginButton.setBackground(UIColors.PRIMARY_BLUE);
         loginButton.setForeground(UIColors.TEXT_WHITE);
         loginButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -95,7 +86,7 @@ public class LoginFenster extends JFrame {
         add(loginButton);
 
         // =======================
-        // Neuer Benutzer Label
+        // Neuer Benutzer
         // =======================
         JLabel newUserLabel = new JLabel("<HTML><U>Neuer Benutzer?</U></HTML>");
         newUserLabel.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -103,18 +94,17 @@ public class LoginFenster extends JFrame {
         y += 45;
 
         newUserLabel.setBounds(
-        	    startX + (formWidth - newUserLabel.getPreferredSize().width) / 2,
-        	    y,
-        	    newUserLabel.getPreferredSize().width,
-        	    25
-        	);
+                startX + (formWidth - newUserLabel.getPreferredSize().width) / 2,
+                y,
+                newUserLabel.getPreferredSize().width,
+                25
+        );
         newUserLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         add(newUserLabel);
 
         // =======================
-        // ActionListener Login
+        // LOGIN LOGIK (HIER WICHTIG)
         // =======================
-  
         loginButton.addActionListener(e -> {
             String email = userField.getText();
             String pass = new String(passField.getPassword());
@@ -127,33 +117,40 @@ public class LoginFenster extends JFrame {
                     return;
                 }
 
-                String rolle = result.getRolle();
+                String rolle = result.getRolle().toLowerCase();
                 int mnr = result.getMnr();
 
-                switch (rolle.toLowerCase()) {
+                switch (rolle) {
                     case "student" -> new DashboardStudent(mnr);
-                    case "betreuer" -> new DashboardBetreuer();
+
+                    case "betreuer" ->
+                            // ✅ NEU: Betreuer starten IMMER mit Studentensuche
+                            new StudentenSucheView();
+
                     case "dekan" -> new DashboardStudiendekan();
-                    default -> JOptionPane.showMessageDialog(this, "Unbekannte Rolle!");
+
+                    default -> JOptionPane.showMessageDialog(
+                            this,
+                            "Unbekannte Rolle!"
+                    );
                 }
 
-                dispose(); // Login-Fenster schließen
+                dispose(); // Login schließen
 
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Fehler beim Login!");
             }
         });
-        
+
         // =======================
         // Neuer Benutzer Action
         // =======================
-        
         newUserLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                dispose();                 // ✅ LoginFenster schließen
-                new NeuerBenutzerFenster(); // ✅ Registrierung öffnen
+                dispose();
+                new NeuerBenutzerFenster();
             }
         });
 
