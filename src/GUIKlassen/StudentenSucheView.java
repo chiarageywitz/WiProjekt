@@ -18,7 +18,6 @@ public class StudentenSucheView extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Farben
         Color hftRed = new Color(204, 0, 0);
         Color panelBg = new Color(245, 245, 245);
 
@@ -30,7 +29,17 @@ public class StudentenSucheView extends JFrame {
         JLabel title = new JLabel("Studenten-Suche");
         title.setFont(new Font("Arial", Font.BOLD, 22));
 
+        JButton logoutBtn = new JButton("Ausloggen");
+        logoutBtn.setBackground(hftRed);
+        logoutBtn.setForeground(Color.WHITE);
+        logoutBtn.setFocusPainted(false);
+        logoutBtn.addActionListener(e -> {
+            new LoginFenster();
+            dispose();
+        });
+
         header.add(title, BorderLayout.WEST);
+        header.add(logoutBtn, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
         // ================= MAIN =================
@@ -38,7 +47,6 @@ public class StudentenSucheView extends JFrame {
         mainPanel.setBackground(panelBg);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // --- Suchleiste ---
         JTextField searchField = new JTextField();
         JButton suchenBtn = new JButton("Suchen");
         suchenBtn.setPreferredSize(new Dimension(100, 30));
@@ -47,22 +55,18 @@ public class StudentenSucheView extends JFrame {
         searchPanel.add(searchField, BorderLayout.CENTER);
         searchPanel.add(suchenBtn, BorderLayout.EAST);
 
-        // --- Liste ---
         studentModel = new DefaultListModel<>();
         studentList = new JList<>(studentModel);
         JScrollPane scrollPane = new JScrollPane(studentList);
 
-        // --- Weiter Button ---
         JButton weiterBtn = new JButton("Weiter");
         weiterBtn.setBackground(hftRed);
         weiterBtn.setForeground(Color.WHITE);
         weiterBtn.setFocusPainted(false);
 
-        // ================= ACTIONS =================
         suchenBtn.addActionListener(e -> sucheStudenten(searchField.getText()));
         weiterBtn.addActionListener(e -> öffneDashboard());
 
-        // ================= ADD =================
         mainPanel.add(searchPanel, BorderLayout.NORTH);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
         mainPanel.add(weiterBtn, BorderLayout.SOUTH);
@@ -71,7 +75,6 @@ public class StudentenSucheView extends JFrame {
         setVisible(true);
     }
 
-    // ================= LOGIK =================
     private void sucheStudenten(String name) {
         try {
             studentModel.clear();

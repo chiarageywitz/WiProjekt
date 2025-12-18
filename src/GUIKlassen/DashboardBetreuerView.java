@@ -32,18 +32,34 @@ public class DashboardBetreuerView extends JFrame {
         );
         topLabel.setFont(new Font("Arial", Font.BOLD, 18));
 
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        buttonPanel.setBackground(Color.WHITE);
+
+        // Logout-Button bleibt rot
         JButton logoutBtn = new JButton("Ausloggen");
         logoutBtn.setBackground(hftRed);
         logoutBtn.setForeground(Color.WHITE);
         logoutBtn.setFocusPainted(false);
-
+        logoutBtn.setPreferredSize(new Dimension(100, 30)); // Größe merken
         logoutBtn.addActionListener(e -> {
+            new LoginFenster();
+            dispose();
+        });
+
+        // Zurück-Button jetzt gleich groß wie Logout
+        JButton backBtn = new JButton("Zurück");
+        backBtn.setPreferredSize(logoutBtn.getPreferredSize()); // gleiche Größe
+        backBtn.setFocusPainted(false);
+        backBtn.addActionListener(e -> {
             new StudentenSucheView();
             dispose();
         });
 
+        buttonPanel.add(backBtn);
+        buttonPanel.add(logoutBtn);
+
         topPanel.add(topLabel, BorderLayout.WEST);
-        topPanel.add(logoutBtn, BorderLayout.EAST);
+        topPanel.add(buttonPanel, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
 
         // ================= MAIN =================
@@ -111,3 +127,5 @@ public class DashboardBetreuerView extends JFrame {
         return btn;
     }
 }
+
+
