@@ -1,22 +1,24 @@
 package GUIKlassen;
 
+import Datenbank.DBConnection;
 import Datenbank.StudentDAO;
 import Datenbank.StudentDAO.StudentInfo;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 public class Noteneingabe extends JFrame {
 
     private final int mnr;
     private final String rolle;
-    private final StudentInfo student; // Neues Feld für StudentInfo
+    private final StudentInfo student;
 
-    // Konstruktor angepasst, um StudentInfo zu übergeben
     public Noteneingabe(StudentInfo student, String rolle) {
         this.student = student;
         this.rolle = rolle.toLowerCase();
-        this.mnr = student.mnr; // mnr aus StudentInfo
+        this.mnr = student.mnr;
 
         setTitle("Noteneingabe");
         setSize(700, 320);
@@ -27,7 +29,6 @@ public class Noteneingabe extends JFrame {
         main.setBackground(Color.WHITE);
         add(main);
 
-        // ================= HEADER =================
         JPanel header = new JPanel();
         header.setBackground(new Color(0, 102, 204));
         header.setBounds(20, 15, 220, 35);
@@ -35,7 +36,6 @@ public class Noteneingabe extends JFrame {
         JLabel headerLabel = new JLabel(
                 rolle.equals("betreuer") ? "Noteneingabe (Betreuer)" : "Noteneingabe (Studiendekan)"
         );
-
         headerLabel.setForeground(Color.WHITE);
         headerLabel.setFont(new Font("Arial", Font.BOLD, 14));
         header.add(headerLabel);
@@ -43,17 +43,15 @@ public class Noteneingabe extends JFrame {
 
         int y = 70;
 
-        // ================= THEMA =================
         JLabel themaLabel = new JLabel("Thema:");
         themaLabel.setBounds(20, y, 200, 25);
         main.add(themaLabel);
 
         JTextField themaField = new JTextField();
         themaField.setBounds(20, y + 25, 640, 30);
-        themaField.setEditable(false); // Thema kann nicht geändert werden
+        themaField.setEditable(false);
         main.add(themaField);
 
-        // ================= NOTE =================
         y += 70;
         JLabel noteLabel = new JLabel(
                 rolle.equals("betreuer") ? "Note (Betreuer):" : "Note (Studiendekan):"
@@ -65,7 +63,6 @@ public class Noteneingabe extends JFrame {
         noteField.setBounds(20, y + 25, 200, 30);
         main.add(noteField);
 
-        // ================= BUTTONS =================
         y += 70;
         JButton speichernBtn = new JButton("Absenden");
         speichernBtn.setBounds(20, y, 140, 35);
@@ -75,27 +72,46 @@ public class Noteneingabe extends JFrame {
 
         speichernBtn.addActionListener(e -> {
             String note = noteField.getText();
+
             if (note.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Bitte Note eingeben!");
                 return;
             }
-            // TODO: hier Note speichern (DAO)
-            JOptionPane.showMessageDialog(this, "Note für " + rolle + " gespeichert (Dummy)");
+
+            try (Connection conn = DBConnection.getConnection()) {
+
+                // 🔹 Benachrichtigung speichern
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO benachrichtigungen (mnr, text) VALUES (?, ?)"
+                );
+                ps.setInt(1, mnr);
+                ps.setString(2,
+                        "Neue Note vom " + rolle + ": " + note
+                );
+                ps.executeUpdate();
+
+                JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
+
+                new DashboardBetreuerView(student);
+                dispose();
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Note!");
+            }
         });
 
         JButton zurückBtn = new JButton("Zurück");
         zurückBtn.setBounds(180, y, 140, 35);
         zurückBtn.addActionListener(e -> {
-            new DashboardBetreuerView(student); // Dashboard mit StudentInfo öffnen
+            new DashboardBetreuerView(student);
             dispose();
         });
 
         main.add(speichernBtn);
         main.add(zurückBtn);
 
-        // ================= STUDENTEN DATEN LADEN =================
         ladeStudentDaten(themaField);
-
         setVisible(true);
     }
 
@@ -103,12 +119,12 @@ public class Noteneingabe extends JFrame {
         try {
             StudentInfo info = StudentDAO.getStudentInfo(mnr);
             if (info != null) {
-                themaField.setText(info.thema); // Thema aus DB einfügen
+                themaField.setText(info.thema);
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Fehler beim Laden der Studentendaten!");
-            e.printStackTrace();
         }
     }
 }
+
 
