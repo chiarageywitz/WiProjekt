@@ -127,4 +127,3 @@ public class Noteneingabe extends JFrame {
     }
 }
 
-
