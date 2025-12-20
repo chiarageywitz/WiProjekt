@@ -26,9 +26,9 @@ public class DashboardStudiendekan extends JFrame {
         setSize(1400, 650);
         setLocationRelativeTo(null);
 
-        Color hftRed = new Color(220, 53, 69);
+        Color hftRed = new Color(226, 0, 26);
         Color hftBlue = new Color(0, 45, 150);
-        Color panelBg = new Color(245, 245, 245);
+        Color panelBg = new Color(240, 240, 240);
         Color grayButton = new Color(230, 230, 230);
 
         // --- Top Bar ---

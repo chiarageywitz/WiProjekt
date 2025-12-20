@@ -17,9 +17,9 @@ public class DashboardBetreuerView extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        Color hftRed = new Color(220, 53, 69);
+        Color hftRed = new Color(226, 0, 26);
         Color hftBlue = new Color(0, 45, 150);
-        Color panelBg = new Color(245, 245, 245);
+        Color panelBg = new Color(240, 240, 240);
 
         // ================= TOP =================
         JPanel topPanel = new JPanel(new BorderLayout());
