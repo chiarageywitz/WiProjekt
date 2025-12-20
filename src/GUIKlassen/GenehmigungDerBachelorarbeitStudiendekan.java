@@ -76,22 +76,7 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
         scroll.setBounds(20, y + 65, 630, 100);
         main.add(scroll);
         
-    
-        
-//     // Zurück-Button
-//        JButton zurueckBtn = new JButton("Zurück");
-//        zurueckBtn.setBounds(500, 420, 120, 35);
-//        zurueckBtn.setBackground(new Color(200, 200, 200));
-//        zurueckBtn.setForeground(Color.BLACK);
-//        zurueckBtn.setFocusPainted(false);
-//        zurueckBtn.setBorderPainted(false);
-//        zurueckBtn.setOpaque(true);
-//        main.add(zurueckBtn);
-//
-//        zurueckBtn.addActionListener(e -> {
-//            this.dispose();          // Genehmigungsfenster schließen
-//            dashboard.setVisible(true); // Dashboard wieder anzeigen
-//        });
+   
         
      // Zurück-Button
         JButton zurueckBtn = new JButton("Zurück");
