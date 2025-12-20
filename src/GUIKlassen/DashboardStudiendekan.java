@@ -155,6 +155,7 @@ public class DashboardStudiendekan extends JFrame {
 		p3Inner.add(Box.createVerticalGlue()); // oben flexible Lücke für Zentrierung
 
 		// Genehmigung Button
+		// Genehmigung Button
 		JButton btnGenehmigen = new JButton("Genehmigung erteilen");
 		btnGenehmigen.setBackground(hftBlue);
 		btnGenehmigen.setForeground(Color.WHITE);
@@ -165,14 +166,40 @@ public class DashboardStudiendekan extends JFrame {
 		btnGenehmigen.setPreferredSize(new Dimension(300, 60));
 		btnGenehmigen.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		btnGenehmigen.addActionListener(e -> SwingUtilities.invokeLater(() -> {
-			GenehmigungDerBachelorarbeitStudiendekan genehmigung = new GenehmigungDerBachelorarbeitStudiendekan(
-					DashboardStudiendekan.this);
-			genehmigung.setVisible(true);
-			DashboardStudiendekan.this.setVisible(false);
-		}));
+		btnGenehmigen.addActionListener(e -> {
+		    int selectedRow = table.getSelectedRow();
+		    if (selectedRow == -1) {
+		        JOptionPane.showMessageDialog(DashboardStudiendekan.this,
+		                "Bitte zuerst einen Studenten in der Tabelle auswählen!");
+		        return;
+		    }
+		    // Matrikelnummer aus der Tabelle holen
+		    int mnr = (int) table.getValueAt(selectedRow, 0);
+		    // StudentInfo aus der Datenbank laden
+		    StudentInfo student = null;
+		    try {
+		        student = StudentDAO.getStudentInfo(mnr);
+		    } catch (Exception ex) {
+		        ex.printStackTrace();
+		        JOptionPane.showMessageDialog(DashboardStudiendekan.this,
+		                "Fehler beim Laden der Studentendaten!");
+		        return;
+		    }
+		    if (student == null) {
+		        JOptionPane.showMessageDialog(DashboardStudiendekan.this,
+		                "Student konnte nicht gefunden werden!");
+		        return;
+		    }
+		    // Genehmigungsfenster öffnen
+		    GenehmigungDerBachelorarbeitStudiendekan genehmigung = new GenehmigungDerBachelorarbeitStudiendekan(
+		            DashboardStudiendekan.this, student);
+		    genehmigung.setVisible(true);
+		    // Dashboard ausblenden
+		    DashboardStudiendekan.this.setVisible(false);
+		});
 
 		p3Inner.add(btnGenehmigen);
+
 
 		p3Inner.add(Box.createVerticalStrut(30)); // Abstand zwischen Buttons
 
