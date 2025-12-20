@@ -136,34 +136,74 @@ public class Noteneingabe extends JFrame {
 
         setVisible(true);
     }
-
+    
+    
+    
+    
     private void speichern(JTextField noteField, JTextField bemerkungField) {
-        String note = noteField.getText().trim();
+        String noteText = noteField.getText().trim();
         String bemerkung = bemerkungField.getText().trim();
 
-        if (note.isEmpty()) {
+        if (noteText.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Bitte Note eingeben!");
             return;
         }
 
-        try (Connection conn = DBConnection.getConnection()) {
-            PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO benachrichtigungen (mnr, text) VALUES (?, ?)"
-            );
-            ps.setInt(1, mnr);
-            ps.setString(2, "Neue Note vom " + rolle + ": " + note + 
-                         (bemerkung.isEmpty() ? "" : " | Bemerkung: " + bemerkung));
-            ps.executeUpdate();
+        try {
+            // Komma zu Punkt für Dezimal
+            noteText = noteText.replace(',', '.');
+            double note = Double.parseDouble(noteText);
 
-            JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
-            parent.setVisible(true);
-            dispose();
+            try (Connection conn = DBConnection.getConnection()) {
+                // Upsert: falls Student schon eine Note hat, aktualisieren
+                String sql = "INSERT INTO noten (mnr, note_studiendekan, bemerkung) VALUES (?, ?, ?) " +
+                             "ON DUPLICATE KEY UPDATE note_studiendekan = VALUES(note_studiendekan), bemerkung = VALUES(bemerkung)";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setInt(1, mnr);
+                ps.setDouble(2, note);
+                ps.setString(3, bemerkung);
+                ps.executeUpdate();
 
+                JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
+                parent.setVisible(true);
+                dispose();
+            }
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Bitte eine gültige Zahl eingeben!");
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Note!");
         }
     }
+
+//    private void speichern(JTextField noteField, JTextField bemerkungField) {
+//        String note = noteField.getText().trim();
+//        String bemerkung = bemerkungField.getText().trim();
+//
+//        if (note.isEmpty()) {
+//            JOptionPane.showMessageDialog(this, "Bitte Note eingeben!");
+//            return;
+//        }
+//
+//        try (Connection conn = DBConnection.getConnection()) {
+//            PreparedStatement ps = conn.prepareStatement(
+//                    "INSERT INTO benachrichtigungen (mnr, text) VALUES (?, ?)"
+//            );
+//            ps.setInt(1, mnr);
+//            ps.setString(2, "Neue Note vom " + rolle + ": " + note + 
+//                         (bemerkung.isEmpty() ? "" : " | Bemerkung: " + bemerkung));
+//            ps.executeUpdate();
+//
+//            JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
+//            parent.setVisible(true);
+//            dispose();
+//
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//            JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Note!");
+//        }
+//    }
 
     private void styleButton(JButton button) {
         button.setBackground(dashboardBlue);
