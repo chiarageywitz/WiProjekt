@@ -142,36 +142,55 @@ public class Noteneingabe extends JFrame {
 	}
 
 	private void speichern(JTextField noteField, JTextField bemerkungField) {
-		String note = noteField.getText().trim();
+		String noteText = noteField.getText().trim();
 		String bemerkung = bemerkungField.getText().trim();
-
-		if (note.isEmpty()) {
+		if (noteText.isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Bitte Note eingeben!");
 			return;
 		}
-
+		// Komma → Punkt (für Double)
+		double note = Double.parseDouble(noteText.replace(",", "."));
 		try (Connection conn = DBConnection.getConnection()) {
-
-			// 🔔 BENACHRICHTIGUNG ERSTELLEN
-			PreparedStatement ps = conn
+			// =========================
+			// 1️⃣ NOTE SPEICHERN
+			// =========================
+			String sqlNote;
+			if (rolle.equals("betreuer")) {
+				sqlNote = """
+						    INSERT INTO noten (mnr, note_betreuer)
+						    VALUES (?, ?)
+						    ON DUPLICATE KEY UPDATE note_betreuer = ?
+						""";
+			} else {
+				sqlNote = """
+						    INSERT INTO noten (mnr, note_studiendekan)
+						    VALUES (?, ?)
+						    ON DUPLICATE KEY UPDATE note_studiendekan = ?
+						""";
+			}
+			PreparedStatement psNote = conn.prepareStatement(sqlNote);
+			psNote.setInt(1, mnr);
+			psNote.setDouble(2, note);
+			psNote.setDouble(3, note);
+			psNote.executeUpdate();
+			// =========================
+			// 2️⃣ BENACHRICHTIGUNG
+			// =========================
+			PreparedStatement psMsg = conn
 					.prepareStatement("INSERT INTO benachrichtigungen (mnr, text, datum) VALUES (?, ?, CURRENT_DATE)");
-
-			String text = "Neue Note vom " + rolle + ": " + note;
+			String text = "Neue Note vom " + rolle + ": " + noteText;
 			if (!bemerkung.isEmpty()) {
 				text += " | Bemerkung: " + bemerkung;
 			}
-
-			ps.setInt(1, mnr);
-			ps.setString(2, text);
-			ps.executeUpdate();
-
+			psMsg.setInt(1, mnr);
+			psMsg.setString(2, text);
+			psMsg.executeUpdate();
 			JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
 			parent.setVisible(true);
 			dispose();
-
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Note!");
+			JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Note!\n" + ex.getMessage());
 		}
 	}
 
