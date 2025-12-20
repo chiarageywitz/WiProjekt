@@ -6,14 +6,17 @@ import java.awt.*;
 
 public class NotenlisteStudiendekan extends JFrame {
 
-    public NotenlisteStudiendekan() {
+    private DashboardStudiendekan dashboard; // Referenz auf Dashboard
+
+    // Konstruktor bekommt Dashboard übergeben
+    public NotenlisteStudiendekan(DashboardStudiendekan dashboard) {
+        this.dashboard = dashboard;
 
         setTitle("Notenliste");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(850, 500);
         setLocationRelativeTo(null);
 
-        // Hauptpanel
         JPanel main = new JPanel();
         main.setLayout(null);
         add(main);
@@ -22,7 +25,6 @@ public class NotenlisteStudiendekan extends JFrame {
         JPanel header = new JPanel();
         header.setBackground(new Color(44, 120, 206));
         header.setBounds(10, 10, 150, 35);
-
         JLabel headerLabel = new JLabel("Notenliste");
         headerLabel.setForeground(Color.WHITE);
         headerLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -31,27 +33,22 @@ public class NotenlisteStudiendekan extends JFrame {
 
         int y = 60;
 
-        // Label "Prüfung"
         JLabel pruefungLabel = new JLabel("Prüfung");
         pruefungLabel.setBounds(20, y, 200, 20);
         main.add(pruefungLabel);
 
-        // Textfeld Prüfung
         JTextField pruefungField = new JTextField();
         pruefungField.setBounds(20, y + 25, 250, 30);
         main.add(pruefungField);
 
-        // Label "Semester"
         JLabel semLabel = new JLabel("Semester");
         semLabel.setBounds(300, y, 200, 20);
         main.add(semLabel);
 
-        // Textfeld Semester
         JTextField semField = new JTextField();
         semField.setBounds(300, y + 25, 80, 30);
         main.add(semField);
 
-        // Filter anwenden Button
         JButton filterBtn = new JButton("Filter anwenden");
         filterBtn.setBounds(500, y + 15, 150, 35);
         filterBtn.setBackground(new Color(44, 120, 206));
@@ -63,10 +60,7 @@ public class NotenlisteStudiendekan extends JFrame {
 
         y += 90;
 
-        // Tabellentitel
         String[] columnNames = { "Matrikelnummer", "Name, Vorname", "Note", "Bestanden" };
-
-        // Leeres Tabellenmodell: Inhalte sollen ja NICHT übernommen werden
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
@@ -76,12 +70,10 @@ public class NotenlisteStudiendekan extends JFrame {
 
         JTable table = new JTable(model);
         table.setRowHeight(28);
-
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBounds(20, y, 780, 250);
         main.add(scrollPane);
 
-        // Speichern Button
         JButton speichernBtn = new JButton("Speichern");
         speichernBtn.setBounds(650, 420, 150, 35);
         speichernBtn.setBackground(new Color(44, 120, 206));
@@ -91,7 +83,22 @@ public class NotenlisteStudiendekan extends JFrame {
         speichernBtn.setOpaque(true);
         main.add(speichernBtn);
 
-        // Beispiel: Leere Zeilen hinzufügen (damit man Checkboxen sieht)
+        // Zurück-Button
+        JButton zurueckBtn = new JButton("Zurück");
+        zurueckBtn.setBounds(500, 420, 120, 35);
+        zurueckBtn.setBackground(new Color(200, 200, 200));
+        zurueckBtn.setForeground(Color.BLACK);
+        zurueckBtn.setFocusPainted(false);
+        zurueckBtn.setBorderPainted(false);
+        zurueckBtn.setOpaque(true);
+        main.add(zurueckBtn);
+
+        zurueckBtn.addActionListener(e -> {
+            this.dispose(); // Notenliste schließen
+            dashboard.setVisible(true); // Dashboard wieder anzeigen
+        });
+
+        // Beispielzeilen
         model.addRow(new Object[]{"", "", "", false});
         model.addRow(new Object[]{"", "", "", false});
         model.addRow(new Object[]{"", "", "", false});
@@ -99,6 +106,6 @@ public class NotenlisteStudiendekan extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new NotenlisteStudiendekan().setVisible(true));
+        SwingUtilities.invokeLater(() -> new NotenlisteStudiendekan(null).setVisible(true));
     }
 }

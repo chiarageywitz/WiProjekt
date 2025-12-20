@@ -101,7 +101,11 @@ public class DashboardStudiendekan extends JFrame {
         openGrades.setBorder(BorderFactory.createLineBorder(new Color(200,200,200)));
         openGrades.setMaximumSize(new Dimension(400, 44));
         openGrades.setAlignmentX(Component.CENTER_ALIGNMENT);
-        openGrades.addActionListener(e -> SwingUtilities.invokeLater(() -> new NotenlisteFenster()));
+        openGrades.addActionListener(e -> SwingUtilities.invokeLater(() -> {
+            NotenlisteStudiendekan notenliste = new NotenlisteStudiendekan(DashboardStudiendekan.this);
+            notenliste.setVisible(true);
+            DashboardStudiendekan.this.setVisible(false); // Dashboard ausblenden
+        }));
         p2Inner.add(openGrades);
         p2Inner.add(Box.createVerticalGlue());
         pNoten.add(p2Inner, BorderLayout.CENTER);
@@ -142,7 +146,11 @@ public class DashboardStudiendekan extends JFrame {
         btnNoteneingabe.setMaximumSize(new Dimension(300, 60));
         btnNoteneingabe.setPreferredSize(new Dimension(300, 60));
         btnNoteneingabe.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnNoteneingabe.addActionListener(e -> SwingUtilities.invokeLater(() -> new NoteneingabeFenster()));
+        btnNoteneingabe.addActionListener(e -> SwingUtilities.invokeLater(() -> {
+            NotenlisteStudiendekan notenliste = new NotenlisteStudiendekan(this); // Übergabe von Dashboard
+            notenliste.setVisible(true);
+            this.setVisible(false); // Dashboard ausblenden
+        }));
         p3Inner.add(btnNoteneingabe);
 
         p3Inner.add(Box.createVerticalGlue()); // unten flexible Lücke für Zentrierung
@@ -197,15 +205,15 @@ public class DashboardStudiendekan extends JFrame {
     }
 
     // --- Placeholder-Fenster ---
-    private static class NotenlisteFenster extends JFrame {
-        NotenlisteFenster() {
-            setTitle("Notenliste");
-            setSize(800,450);
-            setLocationRelativeTo(null);
-            add(new JLabel("Notenliste (später mit Tabelle gefüllt)", SwingConstants.CENTER));
-            setVisible(true);
-        }
-    }
+//    private static class NotenlisteFenster extends JFrame {
+//        NotenlisteFenster() {
+//            setTitle("Notenliste");
+//            setSize(800,450);
+//            setLocationRelativeTo(null);
+//            add(new JLabel("Notenliste (später mit Tabelle gefüllt)", SwingConstants.CENTER));
+//            setVisible(true);
+//        }
+//    }
 
 //    private static class GenehmigungFenster extends JFrame {
 //        GenehmigungFenster() {
