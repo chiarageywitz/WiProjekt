@@ -1,6 +1,9 @@
 package GUIKlassen; 
 
 import Datenbank.DBConnection;
+import GUIKlassen.GenehmigungDerBachelorarbeitStudiendekan;
+
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
@@ -120,7 +123,11 @@ public class DashboardStudiendekan extends JFrame {
         btnGenehmigen.setMaximumSize(new Dimension(300, 60));
         btnGenehmigen.setPreferredSize(new Dimension(300, 60));
         btnGenehmigen.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnGenehmigen.addActionListener(e -> SwingUtilities.invokeLater(() -> new GenehmigungFenster()));
+        btnGenehmigen.addActionListener(e ->
+        SwingUtilities.invokeLater(() ->
+            new GenehmigungDerBachelorarbeitStudiendekan().setVisible(true)
+        )
+    );
         p3Inner.add(btnGenehmigen);
 
         p3Inner.add(Box.createVerticalStrut(30)); // Abstand zwischen Buttons
@@ -200,15 +207,15 @@ public class DashboardStudiendekan extends JFrame {
         }
     }
 
-    private static class GenehmigungFenster extends JFrame {
-        GenehmigungFenster() {
-            setTitle("Genehmigung der Bachelorarbeit");
-            setSize(700,480);
-            setLocationRelativeTo(null);
-            add(new JLabel("Genehmigung-Fenster (Formular kommt später)", SwingConstants.CENTER));
-            setVisible(true);
-        }
-    }
+//    private static class GenehmigungFenster extends JFrame {
+//        GenehmigungFenster() {
+//            setTitle("Genehmigung der Bachelorarbeit");
+//            setSize(700,480);
+//            setLocationRelativeTo(null);
+//            add(new JLabel("Genehmigung-Fenster (Formular kommt später)", SwingConstants.CENTER));
+//            setVisible(true);
+//        }
+//    }
 
     private static class NoteneingabeFenster extends JFrame {
         NoteneingabeFenster() {

@@ -8,7 +8,7 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 
     public GenehmigungDerBachelorarbeitStudiendekan() {
         setTitle("Genehmigung der Bachelorarbeit");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(700, 600);
         setLocationRelativeTo(null);
 
@@ -70,6 +70,13 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
         JScrollPane scroll = new JScrollPane(begrField);
         scroll.setBounds(20, y + 65, 630, 100);
         main.add(scroll);
+        
+        
+        JButton btnZurueck = new JButton("Zurück");
+        btnZurueck.setBounds(20, 500, 120, 30);
+        btnZurueck.addActionListener(e -> dispose()); // schließt das Dialogfenster
+        main.add(btnZurueck);
+
     }
 
     private int addLabelTextfield(JPanel panel, String label, int y) {
