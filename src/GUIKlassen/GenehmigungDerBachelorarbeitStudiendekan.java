@@ -173,8 +173,15 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 
     private void speichern() {
         try (Connection conn = DBConnection.getConnection()) {
-            String sql = "INSERT INTO genehmigungen (mnr, genehmigt, begruendung, thema, studiengang, betreuer) VALUES (?, ?, ?, ?, ?, ?) " +
-                    "ON DUPLICATE KEY UPDATE genehmigt=VALUES(genehmigt), begruendung=VALUES(begruendung), thema=VALUES(thema), studiengang=VALUES(studiengang), betreuer=VALUES(betreuer)";
+
+            // Genehmigung speichern
+            String sql =
+                    "INSERT INTO genehmigungen (mnr, genehmigt, begruendung, thema, studiengang, betreuer) " +
+                    "VALUES (?, ?, ?, ?, ?, ?) " +
+                    "ON DUPLICATE KEY UPDATE " +
+                    "genehmigt=VALUES(genehmigt), begruendung=VALUES(begruendung), " +
+                    "thema=VALUES(thema), studiengang=VALUES(studiengang), betreuer=VALUES(betreuer)";
+
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, student.mnr);
             ps.setBoolean(2, approve.isSelected());
@@ -184,7 +191,29 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
             ps.setString(6, betreuerField.getText());
             ps.executeUpdate();
 
+            // 🔔 BENACHRICHTIGUNG FÜR STUDENT
+            PreparedStatement notif = conn.prepareStatement(
+                    "INSERT INTO benachrichtigungen (mnr, text, datum) VALUES (?, ?, CURRENT_DATE)"
+            );
+
+            String text;
+            if (approve.isSelected()) {
+                text = "Ihre Bachelorarbeit wurde genehmigt.";
+            } else {
+                text = "Ihre Bachelorarbeit wurde abgelehnt.";
+                if (!begrField.getText().trim().isEmpty()) {
+                    text += " Begründung: " + begrField.getText().trim();
+                }
+            }
+
+            notif.setInt(1, student.mnr);
+            notif.setString(2, text);
+            notif.executeUpdate();
+
             JOptionPane.showMessageDialog(this, "Änderungen erfolgreich gespeichert!");
+            dispose();
+            dashboard.setVisible(true);
+
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Fehler beim Speichern!");
