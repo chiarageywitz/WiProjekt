@@ -2,16 +2,15 @@ package GUIKlassen;
 
 import Datenbank.StudentDAO.StudentInfo;
 import GUIKlassen.Noteneingabe;
-
 import javax.swing.*;
 import java.awt.*;
-
+import java.util.List;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
 import Datenbank.DBConnection;
 import Datenbank.StudentDAO;
 import GUIKlassen.GenehmigungDerBachelorarbeitStudiendekan;
-
-import javax.swing.*;
-import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
@@ -64,33 +63,32 @@ public class DashboardStudiendekan extends JFrame {
 		p1Inner.setBackground(Color.WHITE);
 		p1Inner.setLayout(new BoxLayout(p1Inner, BoxLayout.Y_AXIS));
 		p1Inner.add(Box.createVerticalStrut(30));
+
 		// --- Tabelle mit Studenten aus der DB ---
 		String[] spalten = {"Matrikelnummer", "Name", "Thema"};
-		Object[][] daten;
-
-		try {
-		    // Studentendaten aus DB laden
-		    java.util.List<StudentInfo> studentenListe = StudentDAO.getAllStudents();
-		    daten = new Object[studentenListe.size()][3];
-		    for (int i = 0; i < studentenListe.size(); i++) {
-		        StudentInfo s = studentenListe.get(i);
-		        daten[i][0] = s.mnr;     // Matrikelnummer
-		        daten[i][1] = s.name;    // Name
-		        daten[i][2] = s.thema;   // Thema
-		    }
-		} catch (Exception ex) {
-		    ex.printStackTrace();
-		    JOptionPane.showMessageDialog(this, "Fehler beim Laden der Studentendaten!");
-		    daten = new Object[0][3]; // leere Tabelle bei Fehler
-		}
-
-		JTable table = new JTable(daten, spalten);
+		DefaultTableModel model = new DefaultTableModel(spalten, 0);
+		JTable table = new JTable(model);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setPreferredSize(new Dimension(600, 300));
 		p1Inner.add(scrollPane);
-		pStudenten.add(p1Inner, BorderLayout.CENTER);
 
+		// --- Liste aller Studenten für Filterung ---
+		List<StudentInfo> allStudents = new java.util.ArrayList<>();
+		try {
+		    List<StudentInfo> studentenListe = StudentDAO.getAllStudents();
+		    allStudents.addAll(studentenListe);
+
+		    for (StudentInfo s : allStudents) {
+		        model.addRow(new Object[]{s.mnr, s.name, s.thema});
+		    }
+		} catch (Exception ex) {
+		    ex.printStackTrace();
+		    JOptionPane.showMessageDialog(this, "Fehler beim Laden der Studentendaten!");
+		}
+
+
+		// --- Suchfeld ---
 		JTextField searchField = new JTextField("Suche nach Studierenden…");
 		searchField.setMaximumSize(new Dimension(220, 36)); // schmaler
 		searchField.setForeground(Color.GRAY);
@@ -104,7 +102,6 @@ public class DashboardStudiendekan extends JFrame {
 					searchField.setForeground(Color.BLACK);
 				}
 			}
-
 			@Override
 			public void focusLost(FocusEvent e) {
 				if (searchField.getText().isEmpty()) {
@@ -113,16 +110,53 @@ public class DashboardStudiendekan extends JFrame {
 				}
 			}
 		});
+		p1Inner.add(Box.createVerticalStrut(10));
 		p1Inner.add(searchField);
-		p1Inner.add(Box.createVerticalStrut(15));
 
-		JLabel letters = new JLabel("A B C D E F G H I J K L M N O P Q R S T U V W X Y Z");
-		letters.setFont(new Font("Arial", Font.PLAIN, 12));
-		letters.setForeground(Color.DARK_GRAY);
-		letters.setAlignmentX(Component.CENTER_ALIGNMENT);
+		// --- Buchstabenleiste A-Z ---
+		// --- Buchstaben-Buttons horizontal scrollen ---
+		JPanel lettersPanel = new JPanel();
+		lettersPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
+
+		char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+		for (char c : alphabet) {
+		    JButton btn = new JButton(String.valueOf(c));
+		    btn.setMargin(new Insets(2, 6, 2, 6));
+		    btn.setFocusPainted(false);
+		    btn.setBackground(new Color(0, 45, 150));
+		    btn.setForeground(Color.WHITE);
+		    btn.setOpaque(true);
+		    btn.setBorderPainted(false);
+
+		    btn.addActionListener(e -> {
+		        String letter = btn.getText();
+		        filterTableByLetter(table, allStudents, letter);
+		    });
+
+		    lettersPanel.add(btn);
+		}
+
+		// ScrollPane für Buchstaben
+		JScrollPane lettersScroll = new JScrollPane(
+		        lettersPanel,
+		        JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+		        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+		);
+		lettersScroll.setPreferredSize(new Dimension(400, 40));
+		lettersScroll.setBorder(null);
+
+		p1Inner.add(Box.createVerticalStrut(10));
+		p1Inner.add(lettersScroll);
+
+
+		// --- Live-Suche ---
+		searchField.getDocument().addDocumentListener(new DocumentListener() {
+		    public void insertUpdate(DocumentEvent e) { filterTable(model, allStudents, searchField.getText()); }
+		    public void removeUpdate(DocumentEvent e) { filterTable(model, allStudents, searchField.getText()); }
+		    public void changedUpdate(DocumentEvent e) { filterTable(model, allStudents, searchField.getText()); }
+		});
+
 		p1Inner.add(Box.createVerticalGlue());
-		p1Inner.add(letters);
-		p1Inner.add(Box.createVerticalStrut(18));
 		pStudenten.add(p1Inner, BorderLayout.CENTER);
 
 		// --- 2) Notenliste ---
@@ -141,7 +175,7 @@ public class DashboardStudiendekan extends JFrame {
 		openGrades.addActionListener(e -> SwingUtilities.invokeLater(() -> {
 			NotenlisteStudiendekan notenliste = new NotenlisteStudiendekan(DashboardStudiendekan.this);
 			notenliste.setVisible(true);
-			DashboardStudiendekan.this.setVisible(false); // Dashboard ausblenden
+			DashboardStudiendekan.this.setVisible(false);
 		}));
 		p2Inner.add(openGrades);
 		p2Inner.add(Box.createVerticalGlue());
@@ -152,10 +186,8 @@ public class DashboardStudiendekan extends JFrame {
 		JPanel p3Inner = new JPanel();
 		p3Inner.setBackground(Color.WHITE);
 		p3Inner.setLayout(new BoxLayout(p3Inner, BoxLayout.Y_AXIS));
-		p3Inner.add(Box.createVerticalGlue()); // oben flexible Lücke für Zentrierung
+		p3Inner.add(Box.createVerticalGlue());
 
-		// Genehmigung Button
-		// Genehmigung Button
 		JButton btnGenehmigen = new JButton("Genehmigung erteilen");
 		btnGenehmigen.setBackground(hftBlue);
 		btnGenehmigen.setForeground(Color.WHITE);
@@ -173,9 +205,7 @@ public class DashboardStudiendekan extends JFrame {
 		                "Bitte zuerst einen Studenten in der Tabelle auswählen!");
 		        return;
 		    }
-		    // Matrikelnummer aus der Tabelle holen
 		    int mnr = (int) table.getValueAt(selectedRow, 0);
-		    // StudentInfo aus der Datenbank laden
 		    StudentInfo student = null;
 		    try {
 		        student = StudentDAO.getStudentInfo(mnr);
@@ -190,20 +220,14 @@ public class DashboardStudiendekan extends JFrame {
 		                "Student konnte nicht gefunden werden!");
 		        return;
 		    }
-		    // Genehmigungsfenster öffnen
 		    GenehmigungDerBachelorarbeitStudiendekan genehmigung = new GenehmigungDerBachelorarbeitStudiendekan(
 		            DashboardStudiendekan.this, student);
 		    genehmigung.setVisible(true);
-		    // Dashboard ausblenden
 		    DashboardStudiendekan.this.setVisible(false);
 		});
-
 		p3Inner.add(btnGenehmigen);
+		p3Inner.add(Box.createVerticalStrut(30));
 
-
-		p3Inner.add(Box.createVerticalStrut(30)); // Abstand zwischen Buttons
-
-		// Noteneingabe Button
 		JButton btnNoteneingabe = new JButton("Noteneingabe");
 		btnNoteneingabe.setBackground(hftBlue);
 		btnNoteneingabe.setForeground(Color.WHITE);
@@ -213,11 +237,7 @@ public class DashboardStudiendekan extends JFrame {
 		btnNoteneingabe.setMaximumSize(new Dimension(300, 60));
 		btnNoteneingabe.setPreferredSize(new Dimension(300, 60));
 		btnNoteneingabe.setAlignmentX(Component.CENTER_ALIGNMENT);
-//		btnNoteneingabe.addActionListener(e -> {
-//			NotenlisteStudiendekan liste = new NotenlisteStudiendekan(DashboardStudiendekan.this);
-//			liste.setVisible(true);
-//			DashboardStudiendekan.this.setVisible(false);
-//		});
+
 		btnNoteneingabe.addActionListener(e -> {
 			int selectedRow = table.getSelectedRow();
 			if (selectedRow == -1) {
@@ -225,9 +245,7 @@ public class DashboardStudiendekan extends JFrame {
 						"Bitte zuerst einen Studenten in der Tabelle auswählen!");
 				return;
 			}
-			// Matrikelnummer aus der Tabelle holen (Spalte 0 anpassen, falls nötig)
 			int mnr = (int) table.getValueAt(selectedRow, 0);
-			// StudentInfo aus der Datenbank laden
 			StudentInfo student = null;
 			try {
 				student = StudentDAO.getStudentInfo(mnr);
@@ -240,16 +258,12 @@ public class DashboardStudiendekan extends JFrame {
 				JOptionPane.showMessageDialog(DashboardStudiendekan.this, "Student konnte nicht gefunden werden!");
 				return;
 			}
-			// Noteneingabe-Fenster öffnen
 			Noteneingabe noteneingabe = new Noteneingabe(student, "studiendekan", DashboardStudiendekan.this);
 			noteneingabe.setVisible(true);
-			// Dashboard ausblenden
 			DashboardStudiendekan.this.setVisible(false);
 		});
-
 		p3Inner.add(btnNoteneingabe);
-
-		p3Inner.add(Box.createVerticalGlue()); // unten flexible Lücke für Zentrierung
+		p3Inner.add(Box.createVerticalGlue());
 		pFunk.add(p3Inner, BorderLayout.CENTER);
 
 		// --- 4) Portal-Benachrichtigungen ---
@@ -276,9 +290,29 @@ public class DashboardStudiendekan extends JFrame {
 		center.add(pNoten);
 		center.add(pFunk);
 		center.add(pPortal);
-
 		add(center, BorderLayout.CENTER);
 		setVisible(true);
+	}
+
+	// --- Filter Methoden ---
+	private void filterTable(DefaultTableModel model, List<StudentInfo> allStudents, String text) {
+		text = text.toLowerCase();
+		if (text.equals("suche nach studierenden…")) text = "";
+		model.setRowCount(0);
+		for (StudentInfo s : allStudents) {
+			if (s.name.toLowerCase().contains(text)) {
+				model.addRow(new Object[]{s.mnr, s.name, s.thema});
+			}
+		}
+	}
+
+	private void filterByLetter(DefaultTableModel model, List<StudentInfo> allStudents, char letter) {
+		model.setRowCount(0);
+		for (StudentInfo s : allStudents) {
+			if (s.name.toUpperCase().startsWith(String.valueOf(letter))) {
+				model.addRow(new Object[]{s.mnr, s.name, s.thema});
+			}
+		}
 	}
 
 	private JPanel createCardPanel(String headerText, Color headerColor) {
@@ -293,7 +327,6 @@ public class DashboardStudiendekan extends JFrame {
 		header.setFont(new Font("Arial", Font.BOLD, 14));
 		header.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 		card.add(header, BorderLayout.NORTH);
-
 		return card;
 	}
 
@@ -306,12 +339,27 @@ public class DashboardStudiendekan extends JFrame {
 			setVisible(true);
 		}
 	}
+	private void filterTableByLetter(
+	        JTable table,
+	        List<StudentInfo> allStudents,
+	        String letter
+	) {
+	    DefaultTableModel model = (DefaultTableModel) table.getModel();
+	    model.setRowCount(0);
 
-	
-	public static void main(String[] args) {
-		SwingUtilities.invokeLater(() -> {
-			new DashboardStudiendekan(null).setVisible(true);
-		});
+	    for (StudentInfo s : allStudents) {
+	        if (s.name != null && s.name.toUpperCase().startsWith(letter)) {
+	            model.addRow(new Object[]{
+	                    s.mnr,
+	                    s.name,
+	                    s.thema
+	            });
+	        }
+	    }
 	}
 
+
+	public static void main(String[] args) {
+		SwingUtilities.invokeLater(() -> new DashboardStudiendekan(null).setVisible(true));
+	}
 }
