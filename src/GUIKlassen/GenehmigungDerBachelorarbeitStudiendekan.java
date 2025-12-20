@@ -1,8 +1,7 @@
 package GUIKlassen;
 
-import Datenbank.AllgemeineInformationenDAO;
-import Datenbank.StudentDAO.StudentInfo;
 import Datenbank.DBConnection;
+import Datenbank.StudentDAO.StudentInfo;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,14 +30,14 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 
         setTitle("Genehmigung der Bachelorarbeit");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(700, 600);
+        setSize(700, 740); // Fenster höher gemacht
         setLocationRelativeTo(null);
 
         JPanel main = new JPanel();
-        main.setLayout(null);
+        main.setLayout(null); // Beibehalten des originalen Layouts
         add(main);
 
-        // Header
+        // --- Header ---
         JPanel titlePanel = new JPanel();
         titlePanel.setBackground(new Color(0, 45, 150));
         titlePanel.setBounds(10, 10, 660, 35);
@@ -50,8 +49,8 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 
         // Info Text
         JTextArea info = new JTextArea(
-                "Bitte prüfen Sie die eingereichte Anmeldung und erteilen Sie Ihre Genehmigung.\n"
-                        + "Nach der Genehmigung kann der Student mit der Bearbeitung beginnen."
+                "Bitte prüfen Sie die eingereichte Anmeldung und erteilen Sie Ihre Genehmigung.\n" +
+                        "Nach der Genehmigung kann der Student mit der Bearbeitung beginnen."
         );
         info.setEditable(false);
         info.setOpaque(false);
@@ -105,38 +104,38 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
         decline.addActionListener(e -> { if (decline.isSelected()) approve.setSelected(false); });
         main.add(approve);
         main.add(decline);
-
         y += 40;
 
+        // Begründung
         JLabel begr = new JLabel("Begründung:");
         begr.setBounds(20, y, 150, 20);
         main.add(begr);
 
         begrField = new JTextArea();
         JScrollPane scroll = new JScrollPane(begrField);
-        scroll.setBounds(20, y + 25, 630, 100);
+        scroll.setBounds(20, y + 25, 640, 150);
         main.add(scroll);
 
-        // Buttons unten
-        JButton zurueckBtn = new JButton("Zurück");
-        zurueckBtn.setBounds(500, 500, 140, 40);
-        styleButton(zurueckBtn);
-        main.add(zurueckBtn);
+        // --- Buttons unten ---
+        JButton speichernBtn = new JButton("Speichern");
+        speichernBtn.setBounds(340, 630, 140, 40); // weiter unten positioniert
+        styleButton(speichernBtn);
+        speichernBtn.addActionListener(e -> speichern());
+        main.add(speichernBtn);
 
+        JButton zurueckBtn = new JButton("Zurück");
+        zurueckBtn.setBounds(500, 630, 140, 40);
+        styleButton(zurueckBtn);
         zurueckBtn.addActionListener(e -> {
             this.dispose();
             dashboard.setVisible(true);
         });
-
-        JButton speichernBtn = new JButton("Speichern");
-        speichernBtn.setBounds(340, 500, 140, 40);
-        styleButton(speichernBtn);
-        main.add(speichernBtn);
-        speichernBtn.addActionListener(e -> speichern());
+        main.add(zurueckBtn);
 
         setVisible(true);
     }
 
+    // Hilfsmethoden
     private JTextField addLabelTextfield(JPanel panel, String label, int y, String value) {
         JLabel l = new JLabel(label + ":");
         l.setBounds(20, y, 150, 25);
@@ -174,7 +173,6 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 
     private void speichern() {
         try (Connection conn = DBConnection.getConnection()) {
-            // Genehmigung + Begründung + Änderungen speichern
             String sql = "INSERT INTO genehmigungen (mnr, genehmigt, begruendung, thema, studiengang, betreuer) VALUES (?, ?, ?, ?, ?, ?) " +
                     "ON DUPLICATE KEY UPDATE genehmigt=VALUES(genehmigt), begruendung=VALUES(begruendung), thema=VALUES(thema), studiengang=VALUES(studiengang), betreuer=VALUES(betreuer)";
             PreparedStatement ps = conn.prepareStatement(sql);
