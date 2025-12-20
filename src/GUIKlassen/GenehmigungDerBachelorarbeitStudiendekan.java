@@ -6,7 +6,12 @@ import java.io.File;
 
 public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 
-    public GenehmigungDerBachelorarbeitStudiendekan() {
+    private DashboardStudiendekan dashboard;
+
+	
+    public GenehmigungDerBachelorarbeitStudiendekan(DashboardStudiendekan dashboard) {
+        this.dashboard = dashboard;
+
         setTitle("Genehmigung der Bachelorarbeit");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(700, 600);
@@ -72,10 +77,26 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
         main.add(scroll);
         
         
-        JButton btnZurueck = new JButton("Zurück");
-        btnZurueck.setBounds(20, 500, 120, 30);
-        btnZurueck.addActionListener(e -> dispose()); // schließt das Dialogfenster
-        main.add(btnZurueck);
+//        JButton btnZurueck = new JButton("Zurück");
+//        btnZurueck.setBounds(20, 500, 120, 30);
+//        btnZurueck.addActionListener(e -> dispose()); // schließt das Dialogfenster
+//        main.add(btnZurueck);
+        
+     // Zurück-Button
+        JButton zurueckBtn = new JButton("Zurück");
+        zurueckBtn.setBounds(500, 420, 120, 35);
+        zurueckBtn.setBackground(new Color(200, 200, 200));
+        zurueckBtn.setForeground(Color.BLACK);
+        zurueckBtn.setFocusPainted(false);
+        zurueckBtn.setBorderPainted(false);
+        zurueckBtn.setOpaque(true);
+        main.add(zurueckBtn);
+
+        zurueckBtn.addActionListener(e -> {
+            this.dispose();          // Genehmigungsfenster schließen
+            dashboard.setVisible(true); // Dashboard wieder anzeigen
+        });
+
 
     }
 
@@ -109,7 +130,9 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new GenehmigungDerBachelorarbeitStudiendekan().setVisible(true);
+            new GenehmigungDerBachelorarbeitStudiendekan(null).setVisible(true);
         });
     }
+    
+    
 }

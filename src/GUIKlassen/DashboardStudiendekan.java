@@ -11,7 +11,11 @@ import java.awt.event.FocusEvent;
 
 public class DashboardStudiendekan extends JFrame {
 
-    public DashboardStudiendekan() {
+    private DashboardStudiendekan dashboard;
+
+	public DashboardStudiendekan(DashboardStudiendekan dashboard) {
+    	this.dashboard = dashboard;
+    	
         setTitle("Studiendekan - Übersicht");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 650);
@@ -127,9 +131,10 @@ public class DashboardStudiendekan extends JFrame {
         btnGenehmigen.setMaximumSize(new Dimension(300, 60));
         btnGenehmigen.setPreferredSize(new Dimension(300, 60));
         btnGenehmigen.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
         btnGenehmigen.addActionListener(e ->
         SwingUtilities.invokeLater(() ->
-            new GenehmigungDerBachelorarbeitStudiendekan().setVisible(true)
+            new GenehmigungDerBachelorarbeitStudiendekan(null).setVisible(true)
         )
     );
         p3Inner.add(btnGenehmigen);
@@ -234,8 +239,17 @@ public class DashboardStudiendekan extends JFrame {
             setVisible(true);
         }
     }
-
+    
+    
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(DashboardStudiendekan::new);
+        SwingUtilities.invokeLater(() -> {
+            new DashboardStudiendekan(null).setVisible(true);
+        });
     }
+    
+    
+    
+    
+    
+    
 }

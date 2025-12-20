@@ -107,7 +107,7 @@ public class LoginFenster extends JFrame {
                         break;
 
                     case "dekan":
-                        new DashboardStudiendekan();
+                        new DashboardStudiendekan(null);
                         break;
 
                     default:
