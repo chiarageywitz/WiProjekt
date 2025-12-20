@@ -81,4 +81,34 @@ public class StudentDAO {
             return null;
         }
     }
+ // ---------------- ALLE STUDENTEN (nur Rolle "student") ----------------
+    public static List<StudentInfo> getAllStudents() throws Exception {
+        List<StudentInfo> result = new ArrayList<>();
+
+        String sql = """
+            SELECT s.MNR, s.Vorname, a.thema
+            FROM studentendb s
+            LEFT JOIN allgemeine_informationen a ON s.MNR = a.mnr
+            WHERE s.rolle = 'student'
+        """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                result.add(new StudentInfo(
+                        rs.getInt("MNR"),
+                        rs.getString("Vorname"),
+                        rs.getString("thema")
+                ));
+            }
+        }
+
+        return result;
+    }
+
+    
+    
+    
 }

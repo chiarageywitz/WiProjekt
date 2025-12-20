@@ -23,7 +23,7 @@ public class NotenlisteStudiendekan extends JFrame {
 
         // Header-Balken
         JPanel header = new JPanel();
-        header.setBackground(new Color(44, 120, 206));
+        header.setBackground(new Color(0, 45, 150));
         header.setBounds(10, 10, 150, 35);
         JLabel headerLabel = new JLabel("Notenliste");
         headerLabel.setForeground(Color.WHITE);
@@ -51,7 +51,7 @@ public class NotenlisteStudiendekan extends JFrame {
 
         JButton filterBtn = new JButton("Filter anwenden");
         filterBtn.setBounds(500, y + 15, 150, 35);
-        filterBtn.setBackground(new Color(44, 120, 206));
+        filterBtn.setBackground(new Color(0, 45, 150));
         filterBtn.setForeground(Color.WHITE);
         filterBtn.setFocusPainted(false);
         filterBtn.setBorderPainted(false);
@@ -76,7 +76,7 @@ public class NotenlisteStudiendekan extends JFrame {
 
         JButton speichernBtn = new JButton("Speichern");
         speichernBtn.setBounds(650, 420, 150, 35);
-        speichernBtn.setBackground(new Color(44, 120, 206));
+        speichernBtn.setBackground(new Color(0, 45, 150));
         speichernBtn.setForeground(Color.WHITE);
         speichernBtn.setFocusPainted(false);
         speichernBtn.setBorderPainted(false);

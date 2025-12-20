@@ -22,7 +22,7 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
         add(main);
 
         JPanel titlePanel = new JPanel();
-        titlePanel.setBackground(new Color(44, 120, 206));
+        titlePanel.setBackground(new Color(0, 45, 150));
         titlePanel.setBounds(10, 10, 660, 35);
 
         JLabel titleLabel = new JLabel("Genehmigung der Bachelorarbeit");

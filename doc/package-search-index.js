@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"Alle Packages","u":"allpackages-index.html"},{"l":"Datenbank"},{"l":"Fachobjekte"},{"l":"GUIKlassen"},{"l":"Util"}];updateSearchResults();
