@@ -21,8 +21,8 @@ public class DashboardStudiendekan extends JFrame {
         setSize(1400, 650);
         setLocationRelativeTo(null);
 
-        Color hftRed = new Color(204, 0, 0);
-        Color hftBlue = new Color(0, 102, 204);
+        Color hftRed = new Color(220, 53, 69);
+        Color hftBlue = new Color(0, 45, 150);
         Color panelBg = new Color(245, 245, 245);
         Color grayButton = new Color(230, 230, 230);
 
@@ -133,10 +133,13 @@ public class DashboardStudiendekan extends JFrame {
         btnGenehmigen.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         btnGenehmigen.addActionListener(e ->
-        SwingUtilities.invokeLater(() ->
-            new GenehmigungDerBachelorarbeitStudiendekan(null).setVisible(true)
-        )
-    );
+        SwingUtilities.invokeLater(() -> {
+            GenehmigungDerBachelorarbeitStudiendekan genehmigung =
+                new GenehmigungDerBachelorarbeitStudiendekan(DashboardStudiendekan.this);
+            genehmigung.setVisible(true);
+            DashboardStudiendekan.this.setVisible(false);
+        }) );
+
         p3Inner.add(btnGenehmigen);
 
         p3Inner.add(Box.createVerticalStrut(30)); // Abstand zwischen Buttons
