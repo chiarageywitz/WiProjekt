@@ -14,16 +14,18 @@ public class Noteneingabe extends JFrame {
     private final int mnr;
     private final String rolle;
     private final StudentInfo student;
+    private final JFrame parent; // 🔹 NEU
 
-    public Noteneingabe(StudentInfo student, String rolle) {
+    public Noteneingabe(StudentInfo student, String rolle, JFrame parent) {
         this.student = student;
         this.rolle = rolle.toLowerCase();
         this.mnr = student.mnr;
+        this.parent = parent; // 🔹 merken
 
         setTitle("Noteneingabe");
         setSize(700, 320);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // 🔹 wichtig
 
         JPanel main = new JPanel(null);
         main.setBackground(Color.WHITE);
@@ -80,19 +82,16 @@ public class Noteneingabe extends JFrame {
 
             try (Connection conn = DBConnection.getConnection()) {
 
-                // 🔹 Benachrichtigung speichern
                 PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO benachrichtigungen (mnr, text) VALUES (?, ?)"
                 );
                 ps.setInt(1, mnr);
-                ps.setString(2,
-                        "Neue Note vom " + rolle + ": " + note
-                );
+                ps.setString(2, "Neue Note vom " + rolle + ": " + note);
                 ps.executeUpdate();
 
                 JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
 
-                new DashboardBetreuerView(student);
+                parent.setVisible(true); // 🔹 zurück zum alten Dashboard
                 dispose();
 
             } catch (Exception ex) {
@@ -104,7 +103,7 @@ public class Noteneingabe extends JFrame {
         JButton zurückBtn = new JButton("Zurück");
         zurückBtn.setBounds(180, y, 140, 35);
         zurückBtn.addActionListener(e -> {
-            new DashboardBetreuerView(student);
+            parent.setVisible(true); // 🔹 Dashboard wieder anzeigen
             dispose();
         });
 

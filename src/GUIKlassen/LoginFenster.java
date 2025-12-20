@@ -21,16 +21,10 @@ public class LoginFenster extends JFrame {
 
         getContentPane().setBackground(UIColors.BACKGROUND);
 
-        // =======================
-        // Hochschul-Logo
-        // =======================
+        // Logo
         add(UIImageLoader.createLogoLabel(150, 20, 200, 100));
 
         int windowWidth = 500;
-
-        // =======================
-        // Formular-Layout
-        // =======================
         int formWidth = 300;
         int labelWidth = 100;
         int fieldWidth = 180;
@@ -39,9 +33,7 @@ public class LoginFenster extends JFrame {
         int labelX = startX;
         int fieldX = startX + labelWidth + 10;
 
-        // =======================
         // E-Mail
-        // =======================
         JLabel userLabel = new JLabel("E-Mail:");
         userLabel.setFont(new Font("Arial", Font.BOLD, 14));
         int y = 150;
@@ -52,9 +44,7 @@ public class LoginFenster extends JFrame {
         userField.setBounds(fieldX, y, fieldWidth, 25);
         add(userField);
 
-        // =======================
         // Passwort
-        // =======================
         JLabel passLabel = new JLabel("Passwort:");
         passLabel.setFont(new Font("Arial", Font.BOLD, 14));
         y += 40;
@@ -65,34 +55,22 @@ public class LoginFenster extends JFrame {
         passField.setBounds(fieldX, y, fieldWidth, 25);
         add(passField);
 
-        // =======================
         // Login Button
-        // =======================
         JButton loginButton = new JButton("Einloggen");
         y += 60;
-        loginButton.setBounds(
-                startX + (formWidth - 140) / 2,
-                y,
-                140,
-                35
-        );
-
+        loginButton.setBounds(startX + (formWidth - 140) / 2, y, 140, 35);
         loginButton.setBackground(UIColors.PRIMARY_BLUE);
         loginButton.setForeground(UIColors.TEXT_WHITE);
         loginButton.setFont(new Font("Arial", Font.BOLD, 14));
         loginButton.setFocusPainted(false);
-        loginButton.setOpaque(true);
         loginButton.setBorderPainted(false);
         add(loginButton);
 
-        // =======================
         // Neuer Benutzer
-        // =======================
         JLabel newUserLabel = new JLabel("<HTML><U>Neuer Benutzer?</U></HTML>");
         newUserLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         newUserLabel.setForeground(UIColors.PRIMARY_BLUE);
         y += 45;
-
         newUserLabel.setBounds(
                 startX + (formWidth - newUserLabel.getPreferredSize().width) / 2,
                 y,
@@ -102,9 +80,7 @@ public class LoginFenster extends JFrame {
         newUserLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         add(newUserLabel);
 
-        // =======================
-        // LOGIN LOGIK (HIER WICHTIG)
-        // =======================
+        // LOGIN LOGIK
         loginButton.addActionListener(e -> {
             String email = userField.getText();
             String pass = new String(passField.getPassword());
@@ -120,22 +96,25 @@ public class LoginFenster extends JFrame {
                 String rolle = result.getRolle().toLowerCase();
                 int mnr = result.getMnr();
 
+                // ❗ KLASSISCHES SWITCH (WICHTIG)
                 switch (rolle) {
-                    case "student" -> new DashboardStudent(mnr);
+                    case "student":
+                        new DashboardStudent(mnr);
+                        break;
 
-                    case "betreuer" ->
-                            // ✅ NEU: Betreuer starten IMMER mit Studentensuche
-                            new StudentenSucheView();
+                    case "betreuer":
+                        new StudentenSucheView();
+                        break;
 
-                    case "dekan" -> new DashboardStudiendekan();
+                    case "dekan":
+                        new DashboardStudiendekan();
+                        break;
 
-                    default -> JOptionPane.showMessageDialog(
-                            this,
-                            "Unbekannte Rolle!"
-                    );
+                    default:
+                        JOptionPane.showMessageDialog(this, "Unbekannte Rolle!");
                 }
 
-                dispose(); // Login schließen
+                dispose();
 
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -143,9 +122,6 @@ public class LoginFenster extends JFrame {
             }
         });
 
-        // =======================
-        // Neuer Benutzer Action
-        // =======================
         newUserLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
