@@ -177,34 +177,6 @@ public class Noteneingabe extends JFrame {
         }
     }
 
-//    private void speichern(JTextField noteField, JTextField bemerkungField) {
-//        String note = noteField.getText().trim();
-//        String bemerkung = bemerkungField.getText().trim();
-//
-//        if (note.isEmpty()) {
-//            JOptionPane.showMessageDialog(this, "Bitte Note eingeben!");
-//            return;
-//        }
-//
-//        try (Connection conn = DBConnection.getConnection()) {
-//            PreparedStatement ps = conn.prepareStatement(
-//                    "INSERT INTO benachrichtigungen (mnr, text) VALUES (?, ?)"
-//            );
-//            ps.setInt(1, mnr);
-//            ps.setString(2, "Neue Note vom " + rolle + ": " + note + 
-//                         (bemerkung.isEmpty() ? "" : " | Bemerkung: " + bemerkung));
-//            ps.executeUpdate();
-//
-//            JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
-//            parent.setVisible(true);
-//            dispose();
-//
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//            JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Note!");
-//        }
-//    }
-
     private void styleButton(JButton button) {
         button.setBackground(dashboardBlue);
         button.setForeground(Color.WHITE);
