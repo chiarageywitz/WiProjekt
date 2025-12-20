@@ -86,7 +86,7 @@ public class NotenlisteStudiendekan extends JFrame {
         // Zurück-Button
         JButton zurueckBtn = new JButton("Zurück");
         zurueckBtn.setBounds(500, 420, 120, 35);
-        zurueckBtn.setBackground(new Color(200, 200, 200));
+        zurueckBtn.setBackground(new Color(0, 45, 150));
         zurueckBtn.setForeground(Color.BLACK);
         zurueckBtn.setFocusPainted(false);
         zurueckBtn.setBorderPainted(false);

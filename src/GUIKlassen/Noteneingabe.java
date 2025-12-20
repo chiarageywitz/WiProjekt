@@ -14,31 +14,33 @@ public class Noteneingabe extends JFrame {
     private final int mnr;
     private final String rolle;
     private final StudentInfo student;
-    private final JFrame parent; // 🔹 NEU
+    private final JFrame parent;
+    private final Color dashboardBlue = new Color(0, 45, 150); // Dashboard-Farbe
 
     public Noteneingabe(StudentInfo student, String rolle, JFrame parent) {
         this.student = student;
         this.rolle = rolle.toLowerCase();
         this.mnr = student.mnr;
-        this.parent = parent; // 🔹 merken
+        this.parent = parent;
 
         setTitle("Noteneingabe");
-        setSize(700, 320);
+        setSize(700, 380);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // 🔹 wichtig
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         JPanel main = new JPanel(null);
         main.setBackground(Color.WHITE);
         add(main);
 
+        // Header Panel
         JPanel header = new JPanel();
-        header.setBackground(new Color(0, 102, 204));
+        header.setBackground(dashboardBlue); // Dashboard-Blau
         header.setBounds(20, 15, 220, 35);
 
         JLabel headerLabel = new JLabel(
                 rolle.equals("betreuer") ? "Noteneingabe (Betreuer)" : "Noteneingabe (Studiendekan)"
         );
-        headerLabel.setForeground(Color.WHITE);
+        headerLabel.setForeground(Color.WHITE); // weiße Schrift
         headerLabel.setFont(new Font("Arial", Font.BOLD, 14));
         header.add(headerLabel);
         main.add(header);
@@ -68,10 +70,7 @@ public class Noteneingabe extends JFrame {
         y += 70;
         JButton speichernBtn = new JButton("Absenden");
         speichernBtn.setBounds(20, y, 140, 35);
-        speichernBtn.setBackground(new Color(0, 102, 204));
-        speichernBtn.setForeground(Color.WHITE);
-        speichernBtn.setFocusPainted(false);
-
+        styleButton(speichernBtn); // Blau + weiße Schrift
         speichernBtn.addActionListener(e -> {
             String note = noteField.getText();
 
@@ -90,8 +89,7 @@ public class Noteneingabe extends JFrame {
                 ps.executeUpdate();
 
                 JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
-
-                parent.setVisible(true); // 🔹 zurück zum alten Dashboard
+                parent.setVisible(true);
                 dispose();
 
             } catch (Exception ex) {
@@ -100,18 +98,29 @@ public class Noteneingabe extends JFrame {
             }
         });
 
-        JButton zurückBtn = new JButton("Zurück");
-        zurückBtn.setBounds(180, y, 140, 35);
-        zurückBtn.addActionListener(e -> {
-            parent.setVisible(true); // 🔹 Dashboard wieder anzeigen
+        JButton zurueckBtn = new JButton("Zurück");
+        zurueckBtn.setBounds(180, y, 140, 35);
+        styleButton(zurueckBtn); // Blau + weiße Schrift
+        zurueckBtn.addActionListener(e -> {
+            parent.setVisible(true);
             dispose();
         });
 
         main.add(speichernBtn);
-        main.add(zurückBtn);
+        main.add(zurueckBtn);
 
         ladeStudentDaten(themaField);
         setVisible(true);
+    }
+
+    // Einheitliche Button-Stil Methode
+    private void styleButton(JButton button) {
+        button.setBackground(dashboardBlue);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setFont(new Font("Arial", Font.PLAIN, 14));
+        button.setBorderPainted(false);
+        button.setOpaque(true);
     }
 
     private void ladeStudentDaten(JTextField themaField) {
@@ -125,4 +134,3 @@ public class Noteneingabe extends JFrame {
         }
     }
 }
-

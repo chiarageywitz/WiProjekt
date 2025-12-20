@@ -1,5 +1,10 @@
 package GUIKlassen; 
 
+import Datenbank.StudentDAO.StudentInfo;
+
+import javax.swing.*;
+import java.awt.*;
+
 import Datenbank.DBConnection;
 import GUIKlassen.GenehmigungDerBachelorarbeitStudiendekan;
 
