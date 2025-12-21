@@ -1,9 +1,8 @@
-package GUIKlassen;
+ package GUIKlassen;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-
 import Datenbank.AllgemeineInformationenDAO;
 
 public class AllgemeineInformationenStudent extends JPanel {
@@ -87,9 +86,10 @@ public class AllgemeineInformationenStudent extends JPanel {
 
         JButton speichernBtn = new JButton("Absenden");
         speichernBtn.setBounds(20, y, 160, 40);
-        speichernBtn.setBackground(new Color(0, 70, 160));
+        speichernBtn.setBackground(new Color(0, 102, 204));
         speichernBtn.setForeground(Color.WHITE);
-        speichernBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        speichernBtn.setOpaque(true);
+        speichernBtn.setBorderPainted(false);
         add(speichernBtn);
 
         speichernBtn.addActionListener(e -> speichern());
@@ -121,7 +121,7 @@ public class AllgemeineInformationenStudent extends JPanel {
             );
 
             JOptionPane.showMessageDialog(this,
-                    "Daten erfolgreich gespeichert",
+                    "<html><center>Daten erfolgreich gespeichert!</center></html>",
                     "Erfolg",
                     JOptionPane.INFORMATION_MESSAGE);
 

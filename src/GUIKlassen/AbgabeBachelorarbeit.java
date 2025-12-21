@@ -1,6 +1,6 @@
 package GUIKlassen;
-import javax.swing.*;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
@@ -17,7 +17,7 @@ public class AbgabeBachelorarbeit extends JPanel {
         // ===== Titel =====
         JLabel title = new JLabel("Bachelorarbeit");
         title.setOpaque(true);
-        title.setBackground(new Color(0, 102, 204)); // Blau wie im Beispiel
+        title.setBackground(new Color(0, 102, 204)); // Blau
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Arial", Font.BOLD, 16));
         title.setBounds(10, 0, 150, 35);
@@ -40,13 +40,11 @@ public class AbgabeBachelorarbeit extends JPanel {
         dropPanel.setBackground(Color.WHITE);
         add(dropPanel);
 
-        // Icon + Text
         JLabel uploadLabel = new JLabel("<html><center>⬆️<br>Datei auswählen<br><span style='font-size:10px;'>Drag and drop files here</span></center></html>", SwingConstants.CENTER);
         uploadLabel.setBounds(0, 0, 500, 120);
         uploadLabel.setForeground(Color.GRAY);
         dropPanel.add(uploadLabel);
 
-        // Unsichtbarer File Chooser Button
         JButton chooseBtn = new JButton();
         chooseBtn.setBounds(0, 0, 500, 120);
         chooseBtn.setOpaque(false);
@@ -54,7 +52,6 @@ public class AbgabeBachelorarbeit extends JPanel {
         chooseBtn.setBorderPainted(false);
         dropPanel.add(chooseBtn);
 
-        // Datei auswählen
         chooseBtn.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Datei auswählen");
@@ -71,7 +68,7 @@ public class AbgabeBachelorarbeit extends JPanel {
 
         // ===== Beschreibung =====
         JLabel beschrLabel = new JLabel("Beschreibung");
-        beschrLabel.setFont(new Font("Arial", Font.PLAIN, 13)); 
+        beschrLabel.setFont(new Font("Arial", Font.PLAIN, 13));
         beschrLabel.setBounds(20, y, 200, 20);
         add(beschrLabel);
 
@@ -88,17 +85,6 @@ public class AbgabeBachelorarbeit extends JPanel {
 
         // ===== Hochladen Button =====
         JButton uploadBtn = new JButton("Hochladen");
-        uploadBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this,
-                "Ihre Bachelorarbeit wurde erfolgreich hochgeladen!",
-                "Upload erfolgreich",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-
-            new DashboardStudent(4711);   // ✅ Zurück zum Dashboard
-            SwingUtilities.getWindowAncestor(this).dispose(); // ✅ Upload-Fenster schließen
-        });
-        
         uploadBtn.setBounds(200, y, 150, 40);
         uploadBtn.setBackground(new Color(0, 102, 204));
         uploadBtn.setForeground(Color.WHITE);
@@ -106,25 +92,34 @@ public class AbgabeBachelorarbeit extends JPanel {
         uploadBtn.setBorderPainted(false);
         uploadBtn.setOpaque(true);
         add(uploadBtn);
-        
-     // =========================
-     // ✅ ZURÜCK BUTTON
-     // =========================
-     JButton backBtn = new JButton("Zurück");
-     backBtn.setBounds(20, y + 60, 120, 35);
-     backBtn.setBackground(new Color(0, 102, 204));
-     backBtn.setForeground(Color.WHITE);
-     backBtn.setFont(new Font("Arial", Font.BOLD, 13));
-     backBtn.setBorderPainted(false);
-     backBtn.setOpaque(true);
-     add(backBtn);
 
-     // Fenster schließen → zurück zum Dashboard
-     
-     backBtn.addActionListener(e -> {
-    	    new DashboardStudent(4711);   // ✅ Dashboard wieder öffnen
-    	    SwingUtilities.getWindowAncestor(this).dispose(); // ✅ Upload-Fenster schließen
-     });   
+        uploadBtn.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this,
+                "<html><center>Ihre Bachelorarbeit wurde<br>erfolgreich hochgeladen!</center></html>",
+                "Upload erfolgreich",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+
+            new DashboardStudent(4711);   // Zurück zum Dashboard
+            SwingUtilities.getWindowAncestor(this).dispose(); // Upload-Fenster schließen
+        });
+
+        // =========================
+        // Zurück Button
+        // =========================
+        JButton backBtn = new JButton("Zurück");
+        backBtn.setBounds(20, y + 60, 120, 35);
+        backBtn.setBackground(new Color(0, 102, 204));
+        backBtn.setForeground(Color.WHITE);
+        backBtn.setFont(new Font("Arial", Font.BOLD, 13));
+        backBtn.setBorderPainted(false);
+        backBtn.setOpaque(true);
+        add(backBtn);
+
+        backBtn.addActionListener(e -> {
+            new DashboardStudent(4711);   // Dashboard öffnen
+            SwingUtilities.getWindowAncestor(this).dispose(); // Fenster schließen
+        });
     }
 
     // Test

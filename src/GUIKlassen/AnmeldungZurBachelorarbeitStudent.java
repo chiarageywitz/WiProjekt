@@ -1,4 +1,5 @@
 package GUIKlassen;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.text.MaskFormatter;
@@ -11,7 +12,6 @@ public class AnmeldungZurBachelorarbeitStudent extends JFrame {
         setSize(750, 850);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
         setLayout(new BorderLayout());
 
         Color hftBlue = new Color(0, 102, 204);
@@ -99,7 +99,7 @@ public class AnmeldungZurBachelorarbeitStudent extends JFrame {
         JFormattedTextField datumFeld = null;
         try {
             MaskFormatter datumFormatter = new MaskFormatter("##.##.####");
-            datumFormatter.setPlaceholderCharacter('_'); // Unterstriche statt TT.MM.JJJJ
+            datumFormatter.setPlaceholderCharacter('_'); 
             datumFeld = new JFormattedTextField(datumFormatter);
         } catch (Exception e) {
             e.printStackTrace();
@@ -122,32 +122,13 @@ public class AnmeldungZurBachelorarbeitStudent extends JFrame {
 
         // ---------- BOTTOM BUTTONS ----------
         JButton zurueckBtn = new JButton("Zurück zur Übersicht");
-        
-        zurueckBtn.addActionListener(e -> {
-            new DashboardStudent(4711);   // ✅ Dashboard neu öffnen
-            dispose();                    // ✅ Dieses Fenster schließen
-        });
-        
-        
-        JButton absendenBtn = new JButton("Anmeldeformular absenden");
-        absendenBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this,
-                "Ihre Anmeldung zur Bachelorarbeit wurde erfolgreich übermittelt!",
-                "Erfolg",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-
-            new DashboardStudent(4711);   // ✅ Zurück zum Dashboard
-            dispose();                   // ✅ Dieses Fenster schließen
-        });
-        
-
         zurueckBtn.setBackground(hftBlue);
         zurueckBtn.setForeground(Color.WHITE);
         zurueckBtn.setOpaque(true);
         zurueckBtn.setBorderPainted(false);
         zurueckBtn.setFocusPainted(false);
 
+        JButton absendenBtn = new JButton("Anmeldeformular absenden");
         absendenBtn.setBackground(hftBlue);
         absendenBtn.setForeground(Color.WHITE);
         absendenBtn.setOpaque(true);
@@ -167,21 +148,34 @@ public class AnmeldungZurBachelorarbeitStudent extends JFrame {
         centerPanel.add(frage);
         centerPanel.add(radioPanel);
         centerPanel.add(Box.createVerticalStrut(15));
-
         centerPanel.add(bedTitel);
         centerPanel.add(scroll);
         centerPanel.add(Box.createVerticalStrut(10));
-
         centerPanel.add(akzeptiert);
         centerPanel.add(Box.createVerticalStrut(15));
-
         centerPanel.add(datumPanel);
         centerPanel.add(Box.createVerticalStrut(15));
-
         centerPanel.add(hinweis);
 
         add(centerPanel, BorderLayout.CENTER);
         add(bottomBtnPanel, BorderLayout.SOUTH);
+
+        // ---------- BUTTON ACTIONS ----------
+        zurueckBtn.addActionListener(e -> {
+            new DashboardStudent(4711);
+            dispose();
+        });
+
+        absendenBtn.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this,
+                "<html><center>Ihre Anmeldung zur Bachelorarbeit wurde<br>erfolgreich übermittelt!</center></html>",
+                "Erfolg",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+
+            new DashboardStudent(4711);
+            dispose();
+        });
 
         setVisible(true);
     }
