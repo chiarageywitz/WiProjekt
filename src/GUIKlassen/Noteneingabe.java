@@ -10,6 +10,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+/**
+ * Frame-Klasse für die Noteneingabe von Betreuern oder Studiendekan. Ermöglicht
+ * die Eingabe von Noten, Speicherung in der Datenbank und Benachrichtigung des
+ * Studenten. Berechnet automatisch die Endnote.
+ */
 public class Noteneingabe extends JFrame {
 
 	private StudentInfo student;
@@ -19,6 +24,13 @@ public class Noteneingabe extends JFrame {
 
 	private final Color dashboardBlue = new Color(0, 45, 150);
 
+	/**
+	 * Konstruktor für die Noteneingabe.
+	 * 
+	 * @param student StudentInfo-Objekt, für den die Note eingetragen wird.
+	 * @param rolle   Rolle des Benutzers ("betreuer" oder "studiendekan").
+	 * @param parent  Parent-Frame, um nach dem Schließen wieder sichtbar zu werden.
+	 */
 	public Noteneingabe(StudentInfo student, String rolle, JFrame parent) {
 
 		// Sicherheitscheck
@@ -146,6 +158,13 @@ public class Noteneingabe extends JFrame {
 		setVisible(true);
 	}
 
+	/**
+	 * Speichert die eingegebene Note, aktualisiert die Endnote und sendet
+	 * Benachrichtigung.
+	 * 
+	 * @param noteField      JTextField mit der eingegebenen Note.
+	 * @param bemerkungField JTextField für optionale Bemerkungen.
+	 */
 	private void speichern(JTextField noteField, JTextField bemerkungField) {
 		String noteText = noteField.getText().trim();
 		String bemerkung = bemerkungField.getText().trim();
@@ -168,9 +187,7 @@ public class Noteneingabe extends JFrame {
 		// Komma → Punkt (für Double)
 		double note = Double.parseDouble(noteText.replace(",", "."));
 		try (Connection conn = DBConnection.getConnection()) {
-			// =========================
-			// 1️⃣ NOTE SPEICHERN
-			// =========================
+			// Note speichern
 			String sqlNote;
 			if (rolle.equals("betreuer")) {
 				sqlNote = """
@@ -190,10 +207,7 @@ public class Noteneingabe extends JFrame {
 			psNote.setDouble(2, note);
 			psNote.setDouble(3, note);
 			psNote.executeUpdate();
-
-			// =========================
-			// 3️⃣ ENDNOTE AUTOMATISCH BERECHNEN
-			// =========================
+			// Note berechnen
 			String sqlEndnote = """
 					    UPDATE noten
 					    SET endnote = (
@@ -208,9 +222,7 @@ public class Noteneingabe extends JFrame {
 			psEnd.setInt(1, mnr);
 			psEnd.executeUpdate();
 
-			// =========================
-			// 2️⃣ BENACHRICHTIGUNG
-			// =========================
+			// Benachrichtigung
 			PreparedStatement psMsg = conn
 					.prepareStatement("INSERT INTO benachrichtigungen (mnr, text, datum) VALUES (?, ?, CURRENT_DATE)");
 			String text = "Neue Note vom " + rolle + ": " + noteText;
@@ -229,6 +241,11 @@ public class Noteneingabe extends JFrame {
 		}
 	}
 
+	/**
+	 * Formatiert einen Button nach dem Dashboard-Design.
+	 * 
+	 * @param button JButton, der formatiert wird.
+	 */
 	private void styleButton(JButton button) {
 		button.setBackground(dashboardBlue);
 		button.setForeground(Color.WHITE);
@@ -238,6 +255,11 @@ public class Noteneingabe extends JFrame {
 		button.setOpaque(true);
 	}
 
+	/**
+	 * Lädt die vorhandene Note für den Studenten und die Rolle aus der Datenbank.
+	 * 
+	 * @return Double-Wert der Note oder null, falls keine Note vorhanden.
+	 */
 	private Double ladeVorhandeneNote() {
 		try (Connection conn = DBConnection.getConnection()) {
 			String sql;

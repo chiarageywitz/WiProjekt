@@ -10,9 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 /**
- * Frame-Klasse für die Anzeige der Notenliste im Studiendekan-Dashboard.
- * Zeigt alle Studenten mit ihren Noten, ermöglicht Filterung nach Prüfung und Semester
- * und stellt eine Übersicht der bestandenen Prüfungen bereit.
+ * Frame-Klasse für die Anzeige der Notenliste im Studiendekan-Dashboard. Zeigt
+ * alle Studenten mit ihren Noten, ermöglicht Filterung nach Prüfung und
+ * Semester und stellt eine Übersicht der bestandenen Prüfungen bereit.
  */
 public class NotenlisteStudiendekan extends JFrame {
 
@@ -20,6 +20,7 @@ public class NotenlisteStudiendekan extends JFrame {
 
 	/**
 	 * Konstruktor, der die GUI aufbaut und die Noten aus der Datenbank lädt.
+	 * 
 	 * @param dashboard Referenz zum Studiendekan-Dashboard
 	 */
 	public NotenlisteStudiendekan(DashboardStudiendekan dashboard) {
@@ -119,20 +120,18 @@ public class NotenlisteStudiendekan extends JFrame {
 		});
 		ladeNotenAusDatenbank(model);
 	}
+
 	/**
 	 * Lädt alle Noten aus der Datenbank in das übergebene TableModel.
+	 * 
 	 * @param model DefaultTableModel der JTabelle, in das die Daten geladen werden.
 	 */
 	private void ladeNotenAusDatenbank(DefaultTableModel model) {
-		model.setRowCount(0); 
+		model.setRowCount(0);
 
 		try (Connection conn = DBConnection.getConnection()) {
-			String sql =
-				    "SELECT s.MNR, s.Nachname, s.Vorname, n.semester, n.pruefungsname, n.note_studiendekan " +
-				    "FROM studentendb s " +
-				    "LEFT JOIN noten n ON s.MNR = n.mnr " +
-				    "WHERE s.rolle = 'Student'";
-
+			String sql = "SELECT s.MNR, s.Nachname, s.Vorname, n.semester, n.pruefungsname, n.note_studiendekan "
+					+ "FROM studentendb s " + "LEFT JOIN noten n ON s.MNR = n.mnr " + "WHERE s.rolle = 'Student'";
 
 			PreparedStatement ps = conn.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
@@ -146,14 +145,8 @@ public class NotenlisteStudiendekan extends JFrame {
 				String semester = rs.getString("semester");
 				String pruefungsname = rs.getString("pruefungsname");
 
-				model.addRow(new Object[] {
-					    mnr,
-					    name,
-					    semester != null ? semester : "",
-					    pruefungsname != null ? pruefungsname : "",
-					    note != null ? note.toString() : "",
-					    bestanden
-					});
+				model.addRow(new Object[] { mnr, name, semester != null ? semester : "",
+						pruefungsname != null ? pruefungsname : "", note != null ? note.toString() : "", bestanden });
 
 			}
 		} catch (Exception ex) {
