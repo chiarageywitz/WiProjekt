@@ -1,110 +1,205 @@
 package GUIKlassen;
 
-import Datenbank.StudentDAO;
+import Datenbank.DBConnection;
 import Datenbank.StudentDAO.StudentInfo;
 
 import javax.swing.*;
+import javax.swing.text.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 public class Noteneingabe extends JFrame {
 
-    private final int mnr;
-    private final String rolle;
+	private StudentInfo student;
+	private String rolle;
+	private int mnr;
+	private JFrame parent;
 
-    public Noteneingabe(int mnr, String rolle) {
-        this.mnr = mnr;
-        this.rolle = rolle.toLowerCase();
+	private final Color dashboardBlue = new Color(0, 45, 150);
 
-        setTitle("Noteneingabe");
-        setSize(700, 320);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	public Noteneingabe(StudentInfo student, String rolle, JFrame parent) {
 
-        JPanel main = new JPanel(null);
-        main.setBackground(Color.WHITE);
-        add(main);
+		// Sicherheitscheck
+		if (student == null) {
+			JOptionPane.showMessageDialog(null, "Kein Student übergeben!");
+			dispose();
+			return;
+		}
 
-        // ================= HEADER =================
-        JPanel header = new JPanel();
-        header.setBackground(new Color(0, 102, 204));
-        header.setBounds(20, 15, 220, 35);
+		this.student = student;
+		this.rolle = rolle.toLowerCase();
+		this.mnr = student.mnr;
+		this.parent = parent;
 
-        JLabel headerLabel = new JLabel(
-                rolle.equals("betreuer") ? "Noteneingabe (Betreuer)" : "Noteneingabe (Studiendekan)"
-        );
+		setTitle("Noteneingabe");
+		setSize(700, 500); // etwas größer für Hinweis + Bemerkung
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        headerLabel.setForeground(Color.WHITE);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        header.add(headerLabel);
-        main.add(header);
+		JPanel main = new JPanel(null);
+		main.setBackground(Color.WHITE);
+		add(main);
 
-        int y = 70;
+		int y = 15;
 
-        // ================= THEMA =================
-        JLabel themaLabel = new JLabel("Thema:");
-        themaLabel.setBounds(20, y, 200, 25);
-        main.add(themaLabel);
+		// Header
+		JPanel header = new JPanel();
+		header.setBackground(dashboardBlue);
+		header.setBounds(20, y, 260, 35);
+		JLabel headerLabel = new JLabel(
+				rolle.equals("betreuer") ? "Noteneingabe (Betreuer)" : "Noteneingabe (Studiendekan)");
+		headerLabel.setForeground(Color.WHITE);
+		headerLabel.setFont(new Font("Arial", Font.BOLD, 14));
+		header.add(headerLabel);
+		main.add(header);
 
-        JTextField themaField = new JTextField();
-        themaField.setBounds(20, y + 25, 640, 30);
-        themaField.setEditable(false); // Thema kann nicht geändert werden
-        main.add(themaField);
+		y += 60;
 
-        // ================= NOTE =================
-        y += 70;
-        JLabel noteLabel = new JLabel(
-                rolle.equals("betreuer") ? "Note (Betreuer):" : "Note (Studiendekan):"
-        );
-        noteLabel.setBounds(20, y, 250, 25);
-        main.add(noteLabel);
+		// Thema
+		JLabel themaLabel = new JLabel("Thema:");
+		themaLabel.setBounds(20, y, 200, 25);
+		main.add(themaLabel);
 
-        JTextField noteField = new JTextField();
-        noteField.setBounds(20, y + 25, 200, 30);
-        main.add(noteField);
+		JTextField themaField = new JTextField(student.thema);
+		themaField.setBounds(20, y + 25, 640, 30);
+		themaField.setEditable(false); // Thema nicht editierbar
+		main.add(themaField);
 
-        // ================= BUTTONS =================
-        y += 70;
-        JButton speichernBtn = new JButton("Absenden");
-        speichernBtn.setBounds(20, y, 140, 35);
-        speichernBtn.setBackground(new Color(0, 102, 204));
-        speichernBtn.setForeground(Color.WHITE);
-        speichernBtn.setFocusPainted(false);
+		y += 70;
 
-        speichernBtn.addActionListener(e -> {
-            String note = noteField.getText();
-            if (note.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Bitte Note eingeben!");
-                return;
-            }
-            // TODO: hier Note speichern (DAO)
-            JOptionPane.showMessageDialog(this, "Note für " + rolle + " gespeichert (Dummy)");
-        });
+		// Note
+		JLabel noteLabel = new JLabel(rolle.equals("betreuer") ? "Note (Betreuer):" : "Note (Studiendekan):");
+		noteLabel.setBounds(20, y, 250, 25);
+		main.add(noteLabel);
 
-        JButton zurückBtn = new JButton("Zurück");
-        zurückBtn.setBounds(180, y, 140, 35);
-        zurückBtn.addActionListener(e -> {
-            new DashboardBetreuer();
-            dispose();
-        });
+		JTextField noteField = new JTextField();
+		noteField.setBounds(20, y + 25, 200, 30);
 
-        main.add(speichernBtn);
-        main.add(zurückBtn);
+		// DocumentFilter: nur Zahlen + Komma
+		((AbstractDocument) noteField.getDocument()).setDocumentFilter(new DocumentFilter() {
+			@Override
+			public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
+					throws BadLocationException {
+				if (isValidInput(string))
+					super.insertString(fb, offset, string, attr);
+			}
 
-        // ================= STUDENTEN DATEN LADEN =================
-        ladeStudentDaten(themaField);
+			@Override
+			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+					throws BadLocationException {
+				if (isValidInput(text))
+					super.replace(fb, offset, length, text, attrs);
+			}
 
-        setVisible(true);
-    }
+			private boolean isValidInput(String text) {
+				return text.matches("[0-9,]*"); // nur Ziffern + Komma
+			}
+		});
 
-    private void ladeStudentDaten(JTextField themaField) {
-        try {
-            StudentInfo info = StudentDAO.getStudentInfo(mnr);
-            if (info != null) {
-                themaField.setText(info.thema); // Thema aus DB einfügen
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Fehler beim Laden der Studentendaten!");
-            e.printStackTrace();
-        }
-    }
+		main.add(noteField);
+		y += 70;
+
+		// Hinweis
+		JLabel hinweisLabel = new JLabel(
+				"Hinweis: Diese Note wird für das Bachelorseminar vergeben. Benotung wie folgt: 12:3 (Studiendekan : Betreuer).");
+		hinweisLabel.setBounds(20, y, 640, 25);
+		hinweisLabel.setForeground(Color.DARK_GRAY);
+		hinweisLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+		main.add(hinweisLabel);
+
+		y += 50;
+
+		// Bemerkung (für Dekan)
+		JLabel bemerkungLabel = new JLabel("Bemerkung:");
+		bemerkungLabel.setBounds(20, y, 200, 25);
+		main.add(bemerkungLabel);
+
+		JTextField bemerkungField = new JTextField();
+		bemerkungField.setBounds(20, y + 25, 640, 30);
+		main.add(bemerkungField);
+
+		y += 70;
+
+		// Absenden
+		JButton speichernBtn = new JButton("Absenden");
+		speichernBtn.setBounds(20, y, 140, 35);
+		styleButton(speichernBtn);
+		speichernBtn.addActionListener(e -> speichern(noteField, bemerkungField));
+		main.add(speichernBtn);
+
+		// Zurück
+		JButton zurueckBtn = new JButton("Zurück");
+		zurueckBtn.setBounds(180, y, 140, 35);
+		styleButton(zurueckBtn);
+		zurueckBtn.addActionListener(e -> {
+			parent.setVisible(true);
+			dispose();
+		});
+		main.add(zurueckBtn);
+
+		setVisible(true);
+	}
+
+	private void speichern(JTextField noteField, JTextField bemerkungField) {
+		String noteText = noteField.getText().trim();
+		String bemerkung = bemerkungField.getText().trim();
+		if (noteText.isEmpty()) {
+			JOptionPane.showMessageDialog(this, "Bitte Note eingeben!");
+			return;
+		}
+		// Komma → Punkt (für Double)
+		double note = Double.parseDouble(noteText.replace(",", "."));
+		try (Connection conn = DBConnection.getConnection()) {
+			// =========================
+			// 1️⃣ NOTE SPEICHERN
+			// =========================
+			String sqlNote;
+			if (rolle.equals("betreuer")) {
+				sqlNote = """
+						    INSERT INTO noten (mnr, note_betreuer)
+						    VALUES (?, ?)
+						    ON DUPLICATE KEY UPDATE note_betreuer = ?
+						""";
+			} else {
+				sqlNote = """
+						    INSERT INTO noten (mnr, note_studiendekan)
+						    VALUES (?, ?)
+						    ON DUPLICATE KEY UPDATE note_studiendekan = ?
+						""";
+			}
+			PreparedStatement psNote = conn.prepareStatement(sqlNote);
+			psNote.setInt(1, mnr);
+			psNote.setDouble(2, note);
+			psNote.setDouble(3, note);
+			psNote.executeUpdate();
+			// =========================
+			// 2️⃣ BENACHRICHTIGUNG
+			// =========================
+			PreparedStatement psMsg = conn
+					.prepareStatement("INSERT INTO benachrichtigungen (mnr, text, datum) VALUES (?, ?, CURRENT_DATE)");
+			String text = "Neue Note vom " + rolle + ": " + noteText;
+			if (!bemerkung.isEmpty()) {
+				text += " | Bemerkung: " + bemerkung;
+			}
+			psMsg.setInt(1, mnr);
+			psMsg.setString(2, text);
+			psMsg.executeUpdate();
+			JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
+			parent.setVisible(true);
+			dispose();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Note!\n" + ex.getMessage());
+		}
+	}
+
+	private void styleButton(JButton button) {
+		button.setBackground(dashboardBlue);
+		button.setForeground(Color.WHITE);
+		button.setFocusPainted(false);
+		button.setFont(new Font("Arial", Font.PLAIN, 14));
+		button.setBorderPainted(false);
+		button.setOpaque(true);
+	}
 }
