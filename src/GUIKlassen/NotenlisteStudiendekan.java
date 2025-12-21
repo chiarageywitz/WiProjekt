@@ -156,7 +156,9 @@ public class NotenlisteStudiendekan extends JFrame {
 	}
 
 	/**
-	 * Main_methode zum Testen der Notenliste
+	 * Main-Methode zum Testen der Notenliste
+	 * 
+	 * @param args Kommandozeilenargumente (werden nicht verwendet).
 	 */
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> new NotenlisteStudiendekan(null).setVisible(true));

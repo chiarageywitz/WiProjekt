@@ -113,6 +113,11 @@ public class StudentenSucheView extends JFrame {
 		new DashboardBetreuerView(student);
 		dispose();
 	}
+	/**
+	 * Main-Methode zum Starten der Studenten Suche View.
+	 * 
+	 * @param args Kommandozeilenargumente (werden nicht verwendet).
+	 */
 	public static void main(String[] args) {
 		new StudentenSucheView();
 	}

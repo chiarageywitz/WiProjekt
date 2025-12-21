@@ -231,7 +231,7 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 			ps.setString(6, betreuerField.getText());
 			ps.executeUpdate();
 
-			// 🔔 BENACHRICHTIGUNG FÜR STUDENT
+			//  BENACHRICHTIGUNG FÜR STUDENT
 			PreparedStatement notif = conn
 					.prepareStatement("INSERT INTO benachrichtigungen (mnr, text, datum) VALUES (?, ?, CURRENT_DATE)");
 
