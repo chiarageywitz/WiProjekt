@@ -141,7 +141,7 @@ public class LoginFenster extends JFrame {
 	}
 
 	/**
-	 * * Main-Methode zum Starten des Login-Fensters. Initialisiert die GUI im
+	 * Main-Methode zum Starten des Login-Fensters. Initialisiert die GUI im
 	 * Event-Dispatch-Thread.
 	 *
 	 * @param args Kommandozeilenargumente (werden nicht verwendet)
