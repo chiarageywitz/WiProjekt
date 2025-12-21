@@ -64,12 +64,12 @@ public class NotenlisteStudiendekan extends JFrame {
 
 		y += 90;
 
-		String[] columnNames = { "Matrikelnummer", "Name, Vorname", "Note", "Bestanden" };
+		String[] columnNames = { "Matrikelnummer", "Name, Vorname", "Semester", "Prüfungsname", "Note", "Bestanden" };
 
 		DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
 			@Override
 			public Class<?> getColumnClass(int columnIndex) {
-				return (columnIndex == 3) ? Boolean.class : String.class;
+				return (columnIndex == 5) ? Boolean.class : String.class;
 			}
 
 			@Override
@@ -121,10 +121,11 @@ public class NotenlisteStudiendekan extends JFrame {
 
 		try (Connection conn = DBConnection.getConnection()) {
 			String sql =
-		            "SELECT s.MNR, s.Nachname, s.Vorname, n.note_studiendekan " +
-		            "FROM studentendb s " +
-		            "LEFT JOIN noten n ON s.MNR = n.mnr " +
-		            "WHERE s.rolle = 'Student'";
+				    "SELECT s.MNR, s.Nachname, s.Vorname, n.semester, n.pruefungsname, n.note_studiendekan " +
+				    "FROM studentendb s " +
+				    "LEFT JOIN noten n ON s.MNR = n.mnr " +
+				    "WHERE s.rolle = 'Student'";
+
 
 			PreparedStatement ps = conn.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
@@ -135,7 +136,18 @@ public class NotenlisteStudiendekan extends JFrame {
 				Double note = rs.getObject("note_studiendekan", Double.class);
 				boolean bestanden = note != null && note <= 4.0;
 
-				model.addRow(new Object[] { mnr, name, note != null ? note.toString() : "", bestanden });
+				String semester = rs.getString("semester");
+				String pruefungsname = rs.getString("pruefungsname");
+
+				model.addRow(new Object[] {
+					    mnr,
+					    name,
+					    semester != null ? semester : "",
+					    pruefungsname != null ? pruefungsname : "",
+					    note != null ? note.toString() : "",
+					    bestanden
+					});
+
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
