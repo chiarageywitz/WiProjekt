@@ -14,10 +14,20 @@ import GUIKlassen.GenehmigungDerBachelorarbeitStudiendekan;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
+/**
+ * Haupt-Dashboard für den Studiendekan.
+ * Zeigt Studentenübersicht, Notenliste,
+ * Genehmigungs- und Noteneingabefunktionen sowie Portal-Benachrichtigungen.
+ */
 public class DashboardStudiendekan extends JFrame {
 
 	private DashboardStudiendekan dashboard;
 
+	/**
+	 * Konstruktor für das Studiendekan-Dashboard.
+	 * 
+	 * @param dashboard Referenz auf sich selbst, für Navigation zwischen Fenstern.
+	 */
 	public DashboardStudiendekan(DashboardStudiendekan dashboard) {
 		this.dashboard = dashboard;
 
@@ -65,7 +75,7 @@ public class DashboardStudiendekan extends JFrame {
 		p1Inner.add(Box.createVerticalStrut(30));
 
 		// --- Tabelle mit Studenten aus der DB ---
-		String[] spalten = {"Matrikelnummer", "Name", "Thema"};
+		String[] spalten = { "Matrikelnummer", "Name", "Thema" };
 		DefaultTableModel model = new DefaultTableModel(spalten, 0);
 		JTable table = new JTable(model);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -76,17 +86,16 @@ public class DashboardStudiendekan extends JFrame {
 		// --- Liste aller Studenten für Filterung ---
 		List<StudentInfo> allStudents = new java.util.ArrayList<>();
 		try {
-		    List<StudentInfo> studentenListe = StudentDAO.getAllStudents();
-		    allStudents.addAll(studentenListe);
+			List<StudentInfo> studentenListe = StudentDAO.getAllStudents();
+			allStudents.addAll(studentenListe);
 
-		    for (StudentInfo s : allStudents) {
-		        model.addRow(new Object[]{s.mnr, s.name, s.thema});
-		    }
+			for (StudentInfo s : allStudents) {
+				model.addRow(new Object[] { s.mnr, s.name, s.thema });
+			}
 		} catch (Exception ex) {
-		    ex.printStackTrace();
-		    JOptionPane.showMessageDialog(this, "Fehler beim Laden der Studentendaten!");
+			ex.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Fehler beim Laden der Studentendaten!");
 		}
-
 
 		// --- Suchfeld ---
 		JTextField searchField = new JTextField("Suche nach Studierenden…");
@@ -102,6 +111,7 @@ public class DashboardStudiendekan extends JFrame {
 					searchField.setForeground(Color.BLACK);
 				}
 			}
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				if (searchField.getText().isEmpty()) {
@@ -120,40 +130,44 @@ public class DashboardStudiendekan extends JFrame {
 
 		char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 		for (char c : alphabet) {
-		    JButton btn = new JButton(String.valueOf(c));
-		    btn.setMargin(new Insets(2, 6, 2, 6));
-		    btn.setFocusPainted(false);
-		    btn.setBackground(new Color(0, 45, 150));
-		    btn.setForeground(Color.WHITE);
-		    btn.setOpaque(true);
-		    btn.setBorderPainted(false);
+			JButton btn = new JButton(String.valueOf(c));
+			btn.setMargin(new Insets(2, 6, 2, 6));
+			btn.setFocusPainted(false);
+			btn.setBackground(new Color(0, 45, 150));
+			btn.setForeground(Color.WHITE);
+			btn.setOpaque(true);
+			btn.setBorderPainted(false);
 
-		    btn.addActionListener(e -> {
-		        String letter = btn.getText();
-		        filterTableByLetter(table, allStudents, letter);
-		    });
+			btn.addActionListener(e -> {
+				String letter = btn.getText();
+				filterTableByLetter(table, allStudents, letter);
+			});
 
-		    lettersPanel.add(btn);
+			lettersPanel.add(btn);
 		}
 
 		// ScrollPane für Buchstaben
-		JScrollPane lettersScroll = new JScrollPane(
-		        lettersPanel,
-		        JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-		        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-		);
+		JScrollPane lettersScroll = new JScrollPane(lettersPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		lettersScroll.setPreferredSize(new Dimension(400, 40));
 		lettersScroll.setBorder(null);
 
 		p1Inner.add(Box.createVerticalStrut(10));
 		p1Inner.add(lettersScroll);
 
-
 		// --- Live-Suche ---
 		searchField.getDocument().addDocumentListener(new DocumentListener() {
-		    public void insertUpdate(DocumentEvent e) { filterTable(model, allStudents, searchField.getText()); }
-		    public void removeUpdate(DocumentEvent e) { filterTable(model, allStudents, searchField.getText()); }
-		    public void changedUpdate(DocumentEvent e) { filterTable(model, allStudents, searchField.getText()); }
+			public void insertUpdate(DocumentEvent e) {
+				filterTable(model, allStudents, searchField.getText());
+			}
+
+			public void removeUpdate(DocumentEvent e) {
+				filterTable(model, allStudents, searchField.getText());
+			}
+
+			public void changedUpdate(DocumentEvent e) {
+				filterTable(model, allStudents, searchField.getText());
+			}
 		});
 
 		p1Inner.add(Box.createVerticalGlue());
@@ -199,31 +213,29 @@ public class DashboardStudiendekan extends JFrame {
 		btnGenehmigen.setAlignmentX(Component.CENTER_ALIGNMENT);
 
 		btnGenehmigen.addActionListener(e -> {
-		    int selectedRow = table.getSelectedRow();
-		    if (selectedRow == -1) {
-		        JOptionPane.showMessageDialog(DashboardStudiendekan.this,
-		                "Bitte zuerst einen Studenten in der Tabelle auswählen!");
-		        return;
-		    }
-		    int mnr = (int) table.getValueAt(selectedRow, 0);
-		    StudentInfo student = null;
-		    try {
-		        student = StudentDAO.getStudentInfo(mnr);
-		    } catch (Exception ex) {
-		        ex.printStackTrace();
-		        JOptionPane.showMessageDialog(DashboardStudiendekan.this,
-		                "Fehler beim Laden der Studentendaten!");
-		        return;
-		    }
-		    if (student == null) {
-		        JOptionPane.showMessageDialog(DashboardStudiendekan.this,
-		                "Student konnte nicht gefunden werden!");
-		        return;
-		    }
-		    GenehmigungDerBachelorarbeitStudiendekan genehmigung = new GenehmigungDerBachelorarbeitStudiendekan(
-		            DashboardStudiendekan.this, student);
-		    genehmigung.setVisible(true);
-		    DashboardStudiendekan.this.setVisible(false);
+			int selectedRow = table.getSelectedRow();
+			if (selectedRow == -1) {
+				JOptionPane.showMessageDialog(DashboardStudiendekan.this,
+						"Bitte zuerst einen Studenten in der Tabelle auswählen!");
+				return;
+			}
+			int mnr = (int) table.getValueAt(selectedRow, 0);
+			StudentInfo student = null;
+			try {
+				student = StudentDAO.getStudentInfo(mnr);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(DashboardStudiendekan.this, "Fehler beim Laden der Studentendaten!");
+				return;
+			}
+			if (student == null) {
+				JOptionPane.showMessageDialog(DashboardStudiendekan.this, "Student konnte nicht gefunden werden!");
+				return;
+			}
+			GenehmigungDerBachelorarbeitStudiendekan genehmigung = new GenehmigungDerBachelorarbeitStudiendekan(
+					DashboardStudiendekan.this, student);
+			genehmigung.setVisible(true);
+			DashboardStudiendekan.this.setVisible(false);
 		});
 		p3Inner.add(btnGenehmigen);
 		p3Inner.add(Box.createVerticalStrut(30));
@@ -295,26 +307,48 @@ public class DashboardStudiendekan extends JFrame {
 	}
 
 	// --- Filter Methoden ---
+	/**
+	 * Filtert die Studententabelle nach einem eingegebenen Text.
+	 * 
+	 * @param model       TableModel der JTable.
+	 * @param allStudents Liste aller Studenten.
+	 * @param text        Suchtext.
+	 */
 	private void filterTable(DefaultTableModel model, List<StudentInfo> allStudents, String text) {
 		text = text.toLowerCase();
-		if (text.equals("suche nach studierenden…")) text = "";
+		if (text.equals("suche nach studierenden…"))
+			text = "";
 		model.setRowCount(0);
 		for (StudentInfo s : allStudents) {
 			if (s.name.toLowerCase().contains(text)) {
-				model.addRow(new Object[]{s.mnr, s.name, s.thema});
+				model.addRow(new Object[] { s.mnr, s.name, s.thema });
 			}
 		}
 	}
 
+	/**
+	 * Filtert die Studententabelle nach dem Anfangsbuchstaben.
+	 * 
+	 * @param model       TableModel der JTable.
+	 * @param allStudents Liste aller Studenten.
+	 * @param letter      Anfangsbuchstabe. für die Filterung.
+	 */
 	private void filterByLetter(DefaultTableModel model, List<StudentInfo> allStudents, char letter) {
 		model.setRowCount(0);
 		for (StudentInfo s : allStudents) {
 			if (s.name.toUpperCase().startsWith(String.valueOf(letter))) {
-				model.addRow(new Object[]{s.mnr, s.name, s.thema});
+				model.addRow(new Object[] { s.mnr, s.name, s.thema });
 			}
 		}
 	}
 
+	/**
+	 * Erstellt ein farbiges Panel mit Header für Dashboard-Karten.
+	 * 
+	 * @param headerText  Text des Headers.
+	 * @param headerColor Hintergrundfarbe des Headers.
+	 * @return JPanel mit Header.
+	 */
 	private JPanel createCardPanel(String headerText, Color headerColor) {
 		JPanel card = new JPanel(new BorderLayout());
 		card.setBackground(Color.WHITE);
@@ -330,35 +364,31 @@ public class DashboardStudiendekan extends JFrame {
 		return card;
 	}
 
-	private static class NoteneingabeFenster extends JFrame {
-		NoteneingabeFenster() {
-			setTitle("Noteneingabe");
-			setSize(520, 380);
-			setLocationRelativeTo(null);
-			add(new JLabel("Noteneingabe-Fenster (Eingabefelder kommen später)", SwingConstants.CENTER));
-			setVisible(true);
+	/**
+	 * Filtert die Studententabelle nach dem Anfangsbuchstaben des Namens. Diese
+	 * Methode wird von der Buchstabenleiste (A-Z) aufgerufen. Zeigt nur Studenten,
+	 * deren Name mit dem angegebenen Buchstaben beginnt.
+	 *
+	 * @param table       JTable, die gefiltert werden soll.
+	 * @param allStudents Liste aller Studenten, die als Basis für die Filterung dient.
+	 * @param letter      Der Buchstabe, nach dem gefiltert werden soll (Großbuchstabe empfohlen).
+	 */
+	private void filterTableByLetter(JTable table, List<StudentInfo> allStudents, String letter) {
+		DefaultTableModel model = (DefaultTableModel) table.getModel();
+		model.setRowCount(0);
+
+		for (StudentInfo s : allStudents) {
+			if (s.name != null && s.name.toUpperCase().startsWith(letter)) {
+				model.addRow(new Object[] { s.mnr, s.name, s.thema });
+			}
 		}
 	}
-	private void filterTableByLetter(
-	        JTable table,
-	        List<StudentInfo> allStudents,
-	        String letter
-	) {
-	    DefaultTableModel model = (DefaultTableModel) table.getModel();
-	    model.setRowCount(0);
 
-	    for (StudentInfo s : allStudents) {
-	        if (s.name != null && s.name.toUpperCase().startsWith(letter)) {
-	            model.addRow(new Object[]{
-	                    s.mnr,
-	                    s.name,
-	                    s.thema
-	            });
-	        }
-	    }
-	}
-
-
+	/**
+	 * Main-Methode zum Starten des Dashboards für den Studiendekan.
+	 * 
+	 * @param args Kommandozeilenargumente (werden nicht verwendet).
+	 */
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> new DashboardStudiendekan(null).setVisible(true));
 	}
