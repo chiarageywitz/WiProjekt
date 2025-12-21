@@ -10,6 +10,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+/**
+ *  Klasse für die Genehmigung der Bachelorarbeit durch den Studiendekan
+ *  Diese GUI Klasse zeigt die Daten des Studenten an, ermöglicht die Genehmigung oder die Ablehnung
+ *  der Bachelorarbeit und speichert die Entscheidung in der Datenbank.
+ */
 public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 
     private DashboardStudiendekan dashboard;
@@ -24,6 +29,11 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
     private JCheckBox approve;
     private JCheckBox decline;
 
+    /**
+     * Konstruktor, der das GUI aufbaut und die Studentendaten anzeigt.
+     * @param dashboard Dashboard Refernez zum Studiendekan-Dashboard
+     * @param student StudentInfo-Objekt, dessen Bachelorarbeit genehmigt werden soll.
+     */
     public GenehmigungDerBachelorarbeitStudiendekan(DashboardStudiendekan dashboard, StudentInfo student) {
         this.dashboard = dashboard;
         this.student = student;
@@ -135,7 +145,15 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
         setVisible(true);
     }
 
-    // Hilfsmethoden
+
+    /**
+     * Erstellt ein Label und ein textfeld und fügt diese einem Panel hinzu.
+     * @param panel Panel, zu dem die Komponenten hinzugefügt werden. 
+     * @param label Text für das Label.
+     * @param y vertikale Position.
+     * @param value Standwert für das Textfeld.
+     * @return Das erstellte JTextField.
+     */
     private JTextField addLabelTextfield(JPanel panel, String label, int y, String value) {
         JLabel l = new JLabel(label + ":");
         l.setBounds(20, y, 150, 25);
@@ -148,6 +166,12 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
         return tf;
     }
 
+    /**
+     * Fügt einen Button hinzu, um eine Datei auszuwählen.
+     * @param panel Panel, zu dem der Button hinzugefügt wird.
+     * @param label Beschriftung für die Dateiart.
+     * @param y vertikale Position.
+     */
     private void addFileButton(JPanel panel, String label, int y) {
         JLabel l = new JLabel(label + ":");
         l.setBounds(20, y, 150, 25);
@@ -162,6 +186,10 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
         panel.add(openBtn);
     }
 
+    /**
+     * Formatiert einen Button 
+     * @param button Button, der formatiert wird.
+     */
     private void styleButton(JButton button) {
         button.setBackground(new Color(0, 45, 150));
         button.setForeground(Color.WHITE);
@@ -171,6 +199,9 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
         button.setOpaque(true);
     }
 
+    /**
+     * Speichert die Genehmigung/Ablehung, die Begründung und sendet eine Benachrichtigung an den Studenten.
+     */
     private void speichern() {
         try (Connection conn = DBConnection.getConnection()) {
 
