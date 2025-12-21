@@ -9,10 +9,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+/**
+ * Frame-Klasse für die Anzeige der Notenliste im Studiendekan-Dashboard.
+ * Zeigt alle Studenten mit ihren Noten, ermöglicht Filterung nach Prüfung und Semester
+ * und stellt eine Übersicht der bestandenen Prüfungen bereit.
+ */
 public class NotenlisteStudiendekan extends JFrame {
 
 	private DashboardStudiendekan dashboard;
 
+	/**
+	 * Konstruktor, der die GUI aufbaut und die Noten aus der Datenbank lädt.
+	 * @param dashboard Referenz zum Studiendekan-Dashboard
+	 */
 	public NotenlisteStudiendekan(DashboardStudiendekan dashboard) {
 		this.dashboard = dashboard;
 
@@ -108,16 +117,14 @@ public class NotenlisteStudiendekan extends JFrame {
 				dashboard.setVisible(true);
 			}
 		});
-
-		// 🔥 HIER: Daten aus der DB laden
 		ladeNotenAusDatenbank(model);
 	}
-
-	// =========================
-	// NUR DIESE METHODE IST NEU
-	// =========================
+	/**
+	 * Lädt alle Noten aus der Datenbank in das übergebene TableModel.
+	 * @param model DefaultTableModel der JTabelle, in das die Daten geladen werden.
+	 */
 	private void ladeNotenAusDatenbank(DefaultTableModel model) {
-		model.setRowCount(0); // alte / Beispiel-Daten löschen
+		model.setRowCount(0); 
 
 		try (Connection conn = DBConnection.getConnection()) {
 			String sql =
@@ -131,7 +138,7 @@ public class NotenlisteStudiendekan extends JFrame {
 			ResultSet rs = ps.executeQuery();
 
 			while (rs.next()) {
-				int mnr = rs.getInt("MNR"); // ✅ Großbuchstaben wie in DB
+				int mnr = rs.getInt("MNR"); // Großbuchstaben wie in DB
 				String name = rs.getString("Nachname") + ", " + rs.getString("Vorname"); // ✅ Großbuchstaben
 				Double note = rs.getObject("note_studiendekan", Double.class);
 				boolean bestanden = note != null && note <= 4.0;
@@ -155,6 +162,9 @@ public class NotenlisteStudiendekan extends JFrame {
 		}
 	}
 
+	/**
+	 * Main_methode zum Testen der Notenliste
+	 */
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> new NotenlisteStudiendekan(null).setVisible(true));
 	}
