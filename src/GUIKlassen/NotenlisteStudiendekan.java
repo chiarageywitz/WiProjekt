@@ -120,8 +120,11 @@ public class NotenlisteStudiendekan extends JFrame {
 		model.setRowCount(0); // alte / Beispiel-Daten löschen
 
 		try (Connection conn = DBConnection.getConnection()) {
-			String sql = "SELECT s.MNR, s.Nachname, s.Vorname, n.note_studiendekan " + "FROM studentendb s "
-					+ "LEFT JOIN noten n ON s.MNR = n.mnr";
+			String sql =
+		            "SELECT s.MNR, s.Nachname, s.Vorname, n.note_studiendekan " +
+		            "FROM studentendb s " +
+		            "LEFT JOIN noten n ON s.MNR = n.mnr " +
+		            "WHERE s.rolle = 'Student'";
 
 			PreparedStatement ps = conn.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
