@@ -8,6 +8,7 @@ import javax.swing.text.*;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class Noteneingabe extends JFrame {
 
@@ -75,6 +76,10 @@ public class Noteneingabe extends JFrame {
 
 		JTextField noteField = new JTextField();
 		noteField.setBounds(20, y + 25, 200, 30);
+		Double vorhandeneNote = ladeVorhandeneNote();
+		if (vorhandeneNote != null) {
+			noteField.setText(vorhandeneNote.toString().replace(".", ","));
+		}
 
 		// DocumentFilter: nur Zahlen + Komma
 		((AbstractDocument) noteField.getDocument()).setDocumentFilter(new DocumentFilter() {
@@ -144,6 +149,18 @@ public class Noteneingabe extends JFrame {
 	private void speichern(JTextField noteField, JTextField bemerkungField) {
 		String noteText = noteField.getText().trim();
 		String bemerkung = bemerkungField.getText().trim();
+		// 🔒 Warnung bei vorhandener Note
+		Double vorhandeneNote = ladeVorhandeneNote();
+		if (vorhandeneNote != null) {
+			int antwort = JOptionPane.showConfirmDialog(this,
+					"Es existiert bereits eine Note (" + vorhandeneNote + "). Möchten Sie diese überschreiben?",
+					"Warnung", JOptionPane.YES_NO_OPTION);
+			if (antwort != JOptionPane.YES_OPTION) {
+				parent.setVisible(true);
+				dispose();
+				return;
+			}
+		}
 		if (noteText.isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Bitte Note eingeben!");
 			return;
@@ -173,6 +190,24 @@ public class Noteneingabe extends JFrame {
 			psNote.setDouble(2, note);
 			psNote.setDouble(3, note);
 			psNote.executeUpdate();
+
+			// =========================
+			// 3️⃣ ENDNOTE AUTOMATISCH BERECHNEN
+			// =========================
+			String sqlEndnote = """
+					    UPDATE noten
+					    SET endnote = (
+					        (12 * note_studiendekan + 3 * note_betreuer) / 15
+					    )
+					    WHERE mnr = ?
+					      AND note_studiendekan IS NOT NULL
+					      AND note_betreuer IS NOT NULL
+					""";
+
+			PreparedStatement psEnd = conn.prepareStatement(sqlEndnote);
+			psEnd.setInt(1, mnr);
+			psEnd.executeUpdate();
+
 			// =========================
 			// 2️⃣ BENACHRICHTIGUNG
 			// =========================
@@ -202,4 +237,25 @@ public class Noteneingabe extends JFrame {
 		button.setBorderPainted(false);
 		button.setOpaque(true);
 	}
+
+	private Double ladeVorhandeneNote() {
+		try (Connection conn = DBConnection.getConnection()) {
+			String sql;
+			if (rolle.equals("betreuer")) {
+				sql = "SELECT note_betreuer FROM noten WHERE mnr = ?";
+			} else {
+				sql = "SELECT note_studiendekan FROM noten WHERE mnr = ?";
+			}
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, mnr);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getDouble(1);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
 }
