@@ -214,6 +214,13 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 	 * Benachrichtigung an den Studenten.
 	 */
 	private void speichern() {
+		// Prüfen ob eine Auswahl getroffen wurde
+		if (!approve.isSelected() && !decline.isSelected()) {
+		    JOptionPane.showMessageDialog(this,
+		            "Bitte Genehmigung oder Ablehnung auswählen!");
+		    return;
+		}
+
 		try (Connection conn = DBConnection.getConnection()) {
 
 			// Genehmigung speichern
@@ -232,22 +239,32 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 			ps.executeUpdate();
 
 			//  BENACHRICHTIGUNG FÜR STUDENT
-			PreparedStatement notif = conn
-					.prepareStatement("INSERT INTO benachrichtigungen (mnr, text, datum) VALUES (?, ?, CURRENT_DATE)");
+			PreparedStatement notif = conn.prepareStatement(
+				    "INSERT INTO benachrichtigung " +
+				    "(empfaenger_mnr, empfaenger_rolle, titel, text, gelesen) " +
+				    "VALUES (?, ?, ?, ?, 0)"
+				);
 
-			String text;
-			if (approve.isSelected()) {
-				text = "Ihre Bachelorarbeit wurde genehmigt.";
-			} else {
-				text = "Ihre Bachelorarbeit wurde abgelehnt.";
-				if (!begrField.getText().trim().isEmpty()) {
-					text += " Begründung: " + begrField.getText().trim();
+				String titel;
+				String text;
+
+				if (approve.isSelected()) {
+				    titel = "Bachelorarbeit genehmigt";
+				    text = "Ihre Bachelorarbeit wurde genehmigt.";
+				} else {
+				    titel = "Bachelorarbeit abgelehnt";
+				    text = "Ihre Bachelorarbeit wurde abgelehnt.";
+				    if (!begrField.getText().trim().isEmpty()) {
+				        text += "\nBegründung: " + begrField.getText().trim();
+				    }
 				}
-			}
 
-			notif.setInt(1, student.mnr);
-			notif.setString(2, text);
-			notif.executeUpdate();
+				notif.setInt(1, student.mnr);
+				notif.setString(2, "STUDENT");
+				notif.setString(3, titel);
+				notif.setString(4, text);
+				notif.executeUpdate();
+
 
 			JOptionPane.showMessageDialog(this, "Änderungen erfolgreich gespeichert!");
 			dispose();

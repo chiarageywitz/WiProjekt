@@ -85,6 +85,13 @@ public class DashboardStudent extends JFrame {
 
 		// >>> NEU: Benachrichtigungen laden
 		ladeBenachrichtigungen(rightPanel);
+		logoutBtn.addActionListener(e -> {
+            new LoginFenster();
+            dispose();
+        });
+
+        ladeStudentDaten();
+        setVisible(true);
 
 		// ---------- BUTTON ACTIONS ----------
 
@@ -174,24 +181,34 @@ public class DashboardStudent extends JFrame {
 	private void ladeBenachrichtigungen(JPanel panel) {
 		try (Connection conn = DBConnection.getConnection()) {
 			PreparedStatement ps = conn.prepareStatement(
-					"SELECT text, datum FROM benachrichtigungen " +
-					"WHERE mnr = ? ORDER BY datum DESC"
-			);
-			ps.setInt(1, mnr);
-			ResultSet rs = ps.executeQuery();
+	                "SELECT titel, text, erstellt_am FROM benachrichtigung " +
+	                "WHERE empfaenger_mnr = ? AND empfaenger_rolle = 'STUDENT' " +
+	                "ORDER BY erstellt_am DESC"
+	            ); // <<< FIX: richtige Tabelle & Spalten
 
-			int y = 70;
-			while (rs.next()) {
-				JLabel msg = new JLabel(
-						"• " + rs.getDate("datum") + ": " + rs.getString("text")
-				);
-				msg.setBounds(20, y, 460, 25);
-				panel.add(msg);
-				y += 30;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	            ps.setInt(1, mnr);
+	            ResultSet rs = ps.executeQuery();
+
+	            int y = 70;
+
+	            while (rs.next()) {
+	                JLabel msg = new JLabel(
+	                    "<html><b>" + rs.getString("titel") + "</b><br>"
+	                    + rs.getString("text") + "<br>"
+	                    + "<i>" + rs.getTimestamp("erstellt_am") + "</i></html>"
+	                ); // <<< FIX: kein datum mehr
+
+	                msg.setBounds(20, y, 460, 70);
+	                panel.add(msg);
+	                y += 80;
+	            }
+
+	            panel.revalidate();
+	            panel.repaint();
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
 	}
 
 	/**
