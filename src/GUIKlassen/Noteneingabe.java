@@ -119,7 +119,7 @@ public class Noteneingabe extends JFrame {
 
 		// Hinweis
 		JLabel hinweisLabel = new JLabel(
-				"Hinweis: Diese Note wird für das Bachelorseminar vergeben. Benotung wie folgt: 12:3 (Studiendekan : Betreuer).");
+				"Hinweis: Benotung wie folgt: 12:3 (Studiendekan : Betreuer).");
 		hinweisLabel.setBounds(20, y, 640, 25);
 		hinweisLabel.setForeground(Color.DARK_GRAY);
 		hinweisLabel.setFont(new Font("Arial", Font.ITALIC, 12));

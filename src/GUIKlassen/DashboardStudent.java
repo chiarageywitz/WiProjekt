@@ -15,8 +15,8 @@ public class DashboardStudent extends JFrame {
 
 	/**
 	 * Konstruktor für das Studentendashboard.
-     *
-     * @param mnr Matrikelnummer des Studenten
+	 *
+	 * @param mnr Matrikelnummer des Studenten
 	 */
 	public DashboardStudent(int mnr) {
 		this.mnr = mnr;
@@ -51,13 +51,17 @@ public class DashboardStudent extends JFrame {
 		leftTitle.setBounds(0, 0, 380, 50);
 		leftPanel.add(leftTitle);
 
-		JButton btnInfo = createBlueButton("Allgemeine Informationen",
-				"Thema, Firma, Zeitraum, Betreuer Vorschlag und NDA Status");
+		JButton btnInfo = createBlueButton(
+				"Allgemeine Informationen",
+				"Thema, Firma, Zeitraum, Betreuer Vorschlag und NDA Status"
+		);
 		btnInfo.setBounds(50, 70, 280, 75);
 		leftPanel.add(btnInfo);
 
-		JButton btnAnmeldung = createBlueButton("Anmeldung zur Bachelor-Arbeit",
-				"Offizielles Formular (IDP bestanden)");
+		JButton btnAnmeldung = createBlueButton(
+				"Anmeldung zur Bachelor-Arbeit",
+				"Offizielles Formular (IDP bestanden)"
+		);
 		btnAnmeldung.setBounds(50, 170, 280, 75);
 		leftPanel.add(btnAnmeldung);
 
@@ -78,6 +82,9 @@ public class DashboardStudent extends JFrame {
 		rightTitle.setFont(new Font("Arial", Font.BOLD, 16));
 		rightTitle.setBounds(0, 0, 500, 50);
 		rightPanel.add(rightTitle);
+
+		// >>> NEU: Benachrichtigungen laden
+		ladeBenachrichtigungen(rightPanel);
 
 		// ---------- BUTTON ACTIONS ----------
 
@@ -114,17 +121,18 @@ public class DashboardStudent extends JFrame {
 	}
 
 	/**
-	 * * Erstellt einen blauen JButton mit einem Titel und optional einem Untertitel.
+	 * Erstellt einen blauen JButton mit einem Titel und optional einem Untertitel.
 	 * Wenn der Untertitel leer ist, wird nur der Titel zentriert und fett dargestellt.
-	 * Andernfalls wird der Titel fett und zentriert sowie der Untertitel darunter in kleinerer Schrift angezeigt.
-	 * Die Schaltfläche hat einen blauen Hintergrund, weiße Schrift, keine Randzeichnung und kein Fokuspainter.
+	 * Andernfalls wird der Titel fett und zentriert sowie der Untertitel darunter in
+	 * kleinerer Schrift angezeigt.
 	 *
 	 * @param title    Der Haupttext des Buttons.
-	 * @param subtitle Der optionale Untertitel des Buttons. Kann leer sein.
-	 * @return JButton  Ein JButton mit den angegebenen Texten und dem blauen Design.
+	 * @param subtitle Der optionale Untertitel des Buttons.
+	 * @return JButton Ein JButton mit blauem Dashboard-Design.
 	 */
 	private JButton createBlueButton(String title, String subtitle) {
-		String text = subtitle.isEmpty() ? "<html><center><b>" + title + "</b></center></html>"
+		String text = subtitle.isEmpty()
+				? "<html><center><b>" + title + "</b></center></html>"
 				: "<html><center><b>" + title + "</b><br><font size='2'>" + subtitle + "</font></center></html>";
 
 		JButton btn = new JButton(text);
@@ -140,31 +148,56 @@ public class DashboardStudent extends JFrame {
 
 	/**
 	 * Lädt die Daten eines Studenten aus der Datenbank anhand der Matrikelnummer (MNR).
-	 * Es wird eine Verbindung zur Datenbank hergestellt, eine SQL-Abfrage vorbereitet
-	 * und die Daten des Studenten abgerufen. Bei einem Fehler wird eine Fehlermeldung angezeigt.
-	 *
-	 * @throws SQLException Wenn ein Datenbankfehler auftritt.
 	 */
 	private void ladeStudentDaten() {
 		try {
 			Connection conn = DBConnection.getConnection();
-			PreparedStatement ps = conn.prepareStatement("SELECT * FROM studentendb WHERE MNR = ?");
+			PreparedStatement ps = conn.prepareStatement(
+					"SELECT * FROM studentendb WHERE MNR = ?"
+			);
 			ps.setInt(1, mnr);
-			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
-				// Daten können hier geladen werden
-			}
+			ps.executeQuery();
 			conn.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, "Fehler beim Laden der Studentendaten!");
+			JOptionPane.showMessageDialog(this,
+					"Fehler beim Laden der Studentendaten!");
+		}
+	}
+
+	/**
+	 * Lädt alle Benachrichtigungen des Studenten aus der Datenbank
+	 * und zeigt sie im rechten Panel an.
+	 *
+	 * @param panel Panel, in dem die Benachrichtigungen angezeigt werden
+	 */
+	private void ladeBenachrichtigungen(JPanel panel) {
+		try (Connection conn = DBConnection.getConnection()) {
+			PreparedStatement ps = conn.prepareStatement(
+					"SELECT text, datum FROM benachrichtigungen " +
+					"WHERE mnr = ? ORDER BY datum DESC"
+			);
+			ps.setInt(1, mnr);
+			ResultSet rs = ps.executeQuery();
+
+			int y = 70;
+			while (rs.next()) {
+				JLabel msg = new JLabel(
+						"• " + rs.getDate("datum") + ": " + rs.getString("text")
+				);
+				msg.setBounds(20, y, 460, 25);
+				panel.add(msg);
+				y += 30;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
 	/**
 	 * Main-Methode zum Testen des Dashboards.
 	 *
-	 * @param args Kommandozeilenargumente (nicht verwendet)
+	 * @param args Kommandozeilenargumente
 	 */
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> new DashboardStudent(4711));
