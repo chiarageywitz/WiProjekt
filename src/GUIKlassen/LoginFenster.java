@@ -1,6 +1,7 @@
 package GUIKlassen;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -8,6 +9,8 @@ import Datenbank.UserDAO;
 import Datenbank.UserLoginResult;
 import Util.UIColors;
 import Util.UIImageLoader;
+import GUIKlassen.StudentenSucheView;
+
 
 
 public class LoginFenster extends BaseFrame {
@@ -130,7 +133,7 @@ public class LoginFenster extends BaseFrame {
                 switch (rolle.toLowerCase()) {
                     case "student" -> new DashboardStudent(mnr);
                     case "betreuer" -> new StudentenSucheView();
-                    case "dekan" -> new DashboardStudiendekan();
+                    case "dekan" -> new DashboardStudiendekan(null);
                     default -> JOptionPane.showMessageDialog(this, "Unbekannte Rolle!");
                 }
 
