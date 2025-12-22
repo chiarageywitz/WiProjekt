@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 import Datenbank.DBConnection;
+import Datenbank.UserDAO;
 
 /**
  * Dashboard für Studenten. Zeigt die Funktionen für Studierende an, z.B.
@@ -27,15 +28,57 @@ public class DashboardStudent extends JFrame {
 		setLocationRelativeTo(null);
 		setLayout(null);
 
-		JButton logoutBtn = new JButton("Ausloggen");
-		logoutBtn.setBounds(900, 20, 140, 40);
-		logoutBtn.setBackground(new Color(180, 30, 50));
-		logoutBtn.setForeground(Color.WHITE);
-		logoutBtn.setFocusPainted(false);
-		logoutBtn.setFont(new Font("Arial", Font.BOLD, 14));
-		logoutBtn.setOpaque(true);
-		logoutBtn.setBorderPainted(false);
-		add(logoutBtn);
+        // =======================
+        // Account löschen Button (rot, links vom Logout)
+        // =======================
+        JButton deleteAccountBtn = new JButton("Account löschen");
+        deleteAccountBtn.setBounds(740, 20, 140, 40); // Links vom Logout
+        deleteAccountBtn.setBackground(new Color(180, 30, 50)); // Rot
+        deleteAccountBtn.setForeground(Color.WHITE);
+        deleteAccountBtn.setFocusPainted(false);
+        deleteAccountBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        deleteAccountBtn.setOpaque(true);
+        deleteAccountBtn.setBorderPainted(false);
+        add(deleteAccountBtn);
+
+        deleteAccountBtn.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Sind Sie sicher, dass Sie Ihren Account löschen möchten? Dies kann nicht rückgängig gemacht werden!",
+                "Account löschen bestätigen",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                boolean success = UserDAO.loescheBenutzer(mnr);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Account erfolgreich gelöscht!");
+                    new LoginFenster();
+                    dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Fehler beim Löschen des Accounts!");
+                }
+            }
+        });
+
+        // =======================
+        // Logout Button (rot, rechts neben Löschen)
+        // =======================
+        JButton logoutBtn = new JButton("Ausloggen");
+        logoutBtn.setBounds(900, 20, 140, 40); // Rechts vom Löschen-Button
+        logoutBtn.setBackground(new Color(180, 30, 50));
+        logoutBtn.setForeground(Color.WHITE);
+        logoutBtn.setFocusPainted(false);
+        logoutBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        logoutBtn.setOpaque(true);
+        logoutBtn.setBorderPainted(false);
+        add(logoutBtn);
+
+        logoutBtn.addActionListener(e -> {
+            new LoginFenster();
+            dispose();
+        });
 
 		JPanel leftPanel = new JPanel(null);
 		leftPanel.setBounds(60, 100, 380, 450);
@@ -125,6 +168,8 @@ public class DashboardStudent extends JFrame {
 
 		ladeStudentDaten();
 		setVisible(true);
+		
+
 	}
 
 	/**
