@@ -129,7 +129,7 @@ public class LoginFenster extends BaseFrame {
 
                 switch (rolle.toLowerCase()) {
                     case "student" -> new DashboardStudent(mnr);
-                    case "betreuer" -> new DashboardBetreuer();
+                    case "betreuer" -> new StudentenSucheView();
                     case "dekan" -> new DashboardStudiendekan();
                     default -> JOptionPane.showMessageDialog(this, "Unbekannte Rolle!");
                 }
