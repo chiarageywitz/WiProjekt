@@ -119,7 +119,7 @@ public class Noteneingabe extends JFrame {
 
 		// Hinweis
 		JLabel hinweisLabel = new JLabel(
-				"Hinweis: Benotung wie folgt: 12:3 (Studiendekan : Betreuer).");
+				"Hinweis: Benotung wie folgt: 12:3 (Betreuer : Studiendekan).");
 		hinweisLabel.setBounds(20, y, 640, 25);
 		hinweisLabel.setForeground(Color.DARK_GRAY);
 		hinweisLabel.setFont(new Font("Arial", Font.ITALIC, 12));
@@ -211,7 +211,7 @@ public class Noteneingabe extends JFrame {
 			String sqlEndnote = """
 					    UPDATE noten
 					    SET endnote = (
-					        (12 * note_studiendekan + 3 * note_betreuer) / 15
+					        (3 * note_studiendekan + 12 * note_betreuer) / 15
 					    )
 					    WHERE mnr = ?
 					      AND note_studiendekan IS NOT NULL
