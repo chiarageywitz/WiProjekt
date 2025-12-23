@@ -2,7 +2,7 @@ package GUIKlassen;
 
 import Datenbank.DBConnection;
 import Datenbank.StudentDAO.StudentInfo;
-
+ 
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
