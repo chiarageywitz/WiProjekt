@@ -167,6 +167,8 @@ public class NotenlisteStudiendekan extends JFrame {
 
     /**
      * Lädt alle Noten aus der Datenbank in das übergebene TableModel.
+     * Endnote wird nur angezeigt, wenn sowohl Betreuer- als auch Dekan-Note vorhanden sind,
+     * gerundet auf eine Nachkommastelle.
      *
      * @param model DefaultTableModel der JTable, in das die Daten geladen werden.
      */
@@ -174,10 +176,11 @@ public class NotenlisteStudiendekan extends JFrame {
         model.setRowCount(0);
 
         try (Connection conn = DBConnection.getConnection()) {
-            String sql = "SELECT s.MNR, s.Nachname, s.Vorname, n.semester, n.pruefungsname, n.note_studiendekan "
-                    + "FROM studentendb s "
-                    + "LEFT JOIN noten n ON s.MNR = n.mnr "
-                    + "WHERE s.rolle = 'Student'";
+            String sql = "SELECT s.MNR, s.Nachname, s.Vorname, n.semester, n.pruefungsname, " +
+                         "n.note_betreuer, n.note_studiendekan, n.endnote " +
+                         "FROM studentendb s " +
+                         "LEFT JOIN noten n ON s.MNR = n.mnr " +
+                         "WHERE s.rolle = 'Student'";
 
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -185,20 +188,38 @@ public class NotenlisteStudiendekan extends JFrame {
             while (rs.next()) {
                 int mnr = rs.getInt("MNR");
                 String name = rs.getString("Nachname") + ", " + rs.getString("Vorname");
-                Double note = rs.getObject("note_studiendekan", Double.class);
-                boolean bestanden = note != null && note <= 4.0;
+                Double noteBetreuer = rs.getObject("note_betreuer", Double.class);
+                Double noteDekan = rs.getObject("note_studiendekan", Double.class);
+                Double endnote = null;
+
+                // Endnote nur berechnen/anzeigen, wenn beide Noten vorhanden sind
+                if (noteBetreuer != null && noteDekan != null) {
+                    endnote = rs.getObject("endnote", Double.class);
+                    if (endnote != null) {
+                        endnote = Math.round(endnote * 10.0) / 10.0; // auf 1 Nachkommastelle runden
+                    }
+                }
+
+                boolean bestanden = endnote != null && endnote <= 4.0;
 
                 String semester = rs.getString("semester");
                 String pruefungsname = rs.getString("pruefungsname");
 
-                model.addRow(new Object[]{mnr, name, semester != null ? semester : "",
-                        pruefungsname != null ? pruefungsname : "", note != null ? note.toString() : "", bestanden});
+                model.addRow(new Object[]{
+                        mnr,
+                        name,
+                        semester != null ? semester : "",
+                        pruefungsname != null ? pruefungsname : "",
+                        endnote != null ? endnote.toString().replace(".", ",") : "",
+                        bestanden
+                });
             }
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Fehler beim Laden der Noten aus der Datenbank!\n\n" + ex.getMessage());
         }
     }
+
 
     /**
      * Renderer für die Tabellen-Header mit kleinen Dreiecken,

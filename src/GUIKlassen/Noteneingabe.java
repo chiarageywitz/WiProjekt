@@ -2,282 +2,333 @@ package GUIKlassen;
 
 import Datenbank.DBConnection;
 import Datenbank.StudentDAO.StudentInfo;
- 
+
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 /**
- * Frame-Klasse für die Noteneingabe von Betreuern oder Studiendekan. Ermöglicht
- * die Eingabe von Noten, Speicherung in der Datenbank und Benachrichtigung des
- * Studenten. Berechnet automatisch die Endnote.
+ * Frame-Klasse für die Noteneingabe eines Studenten.
+ * Ermöglicht rollenabhängige Eingabe (Betreuer oder Studiendekan),
+ * automatische Berechnung der Endnote und Speicherung in der DB.
+ * Die Noten bleiben beim nächsten Öffnen in den Feldern sichtbar.
  */
 public class Noteneingabe extends JFrame {
 
-	private StudentInfo student;
-	private String rolle;
-	private int mnr;
-	private JFrame parent;
+    private StudentInfo student;
+    private String rolle;
+    private int mnr;
+    private JFrame parent;
 
-	private final Color dashboardBlue = new Color(0, 45, 150);
+    private final Color dashboardBlue = new Color(0, 45, 150);
 
-	/**
-	 * Konstruktor für die Noteneingabe.
-	 * 
-	 * @param student StudentInfo-Objekt, für den die Note eingetragen wird.
-	 * @param rolle   Rolle des Benutzers ("betreuer" oder "studiendekan").
-	 * @param parent  Parent-Frame, um nach dem Schließen wieder sichtbar zu werden.
-	 */
-	public Noteneingabe(StudentInfo student, String rolle, JFrame parent) {
+    private JTextField noteBetreuerField;
+    private JTextField noteDekanField;
+    private JTextField endnoteField;
 
-		// Sicherheitscheck
-		if (student == null) {
-			JOptionPane.showMessageDialog(null, "Kein Student übergeben!");
-			dispose();
-			return;
-		}
+    /**
+     * Konstruktor für die Noteneingabe.
+     *
+     * @param student StudentInfo-Objekt
+     * @param rolle   Rolle des Benutzers ("betreuer" oder "studiendekan")
+     * @param parent  Parent-Frame
+     */
+    public Noteneingabe(StudentInfo student, String rolle, JFrame parent) {
+        if (student == null) {
+            JOptionPane.showMessageDialog(null, "Kein Student übergeben!");
+            dispose();
+            return;
+        }
 
-		this.student = student;
-		this.rolle = rolle.toLowerCase();
-		this.mnr = student.mnr;
-		this.parent = parent;
+        this.student = student;
+        this.rolle = rolle.toLowerCase();
+        this.mnr = student.mnr;
+        this.parent = parent;
 
-		setTitle("Noteneingabe");
-		setSize(700, 500); // etwas größer für Hinweis + Bemerkung
-		setLocationRelativeTo(null);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setTitle("Noteneingabe");
+        setSize(700, 580);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-		JPanel main = new JPanel(null);
-		main.setBackground(Color.WHITE);
-		add(main);
+        JPanel main = new JPanel(null);
+        main.setBackground(Color.WHITE);
+        add(main);
 
-		int y = 15;
+        int y = 15;
 
-		// Header
-		JPanel header = new JPanel();
-		header.setBackground(dashboardBlue);
-		header.setBounds(20, y, 260, 35);
-		JLabel headerLabel = new JLabel(
-				rolle.equals("betreuer") ? "Noteneingabe (Betreuer)" : "Noteneingabe (Studiendekan)");
-		headerLabel.setForeground(Color.WHITE);
-		headerLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		header.add(headerLabel);
-		main.add(header);
+        // Header
+        JPanel header = new JPanel();
+        header.setBackground(dashboardBlue);
+        header.setBounds(20, y, 300, 35);
+        JLabel headerLabel = new JLabel(
+                rolle.equals("betreuer") ? "Noteneingabe (Betreuer)" : "Noteneingabe (Studiendekan)");
+        headerLabel.setForeground(Color.WHITE);
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        header.add(headerLabel);
+        main.add(header);
 
-		y += 60;
+        y += 60;
 
-		// Thema
-		JLabel themaLabel = new JLabel("Thema:");
-		themaLabel.setBounds(20, y, 200, 25);
-		main.add(themaLabel);
+        // Thema
+        JLabel themaLabel = new JLabel("Thema:");
+        themaLabel.setBounds(20, y, 200, 25);
+        main.add(themaLabel);
 
-		JTextField themaField = new JTextField(student.thema);
-		themaField.setBounds(20, y + 25, 640, 30);
-		themaField.setEditable(false); // Thema nicht editierbar
-		main.add(themaField);
+        JTextField themaField = new JTextField(student.thema);
+        themaField.setBounds(20, y + 25, 640, 30);
+        themaField.setEditable(false);
+        main.add(themaField);
 
-		y += 70;
+        y += 70;
 
-		// Note
-		JLabel noteLabel = new JLabel(rolle.equals("betreuer") ? "Note (Betreuer):" : "Note (Studiendekan):");
-		noteLabel.setBounds(20, y, 250, 25);
-		main.add(noteLabel);
+        // Note Betreuer
+        JLabel betreuerLabel = new JLabel("Note Betreuer:");
+        betreuerLabel.setBounds(20, y, 200, 25);
+        main.add(betreuerLabel);
 
-		JTextField noteField = new JTextField();
-		noteField.setBounds(20, y + 25, 200, 30);
-		Double vorhandeneNote = ladeVorhandeneNote();
-		if (vorhandeneNote != null) {
-			noteField.setText(vorhandeneNote.toString().replace(".", ","));
-		}
+        noteBetreuerField = createNoteField();
+        noteBetreuerField.setBounds(20, y + 25, 200, 30);
+        main.add(noteBetreuerField);
 
-		// DocumentFilter: nur Zahlen + Komma
-		((AbstractDocument) noteField.getDocument()).setDocumentFilter(new DocumentFilter() {
-			@Override
-			public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
-					throws BadLocationException {
-				if (isValidInput(string))
-					super.insertString(fb, offset, string, attr);
-			}
+        JButton speichernBetreuerBtn = new JButton("Note speichern");
+        speichernBetreuerBtn.setBounds(240, y + 25, 160, 30);
+        styleButton(speichernBetreuerBtn);
+        speichernBetreuerBtn.addActionListener(e -> speichereEinzelNote("note_betreuer", noteBetreuerField));
+        main.add(speichernBetreuerBtn);
 
-			@Override
-			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
-					throws BadLocationException {
-				if (isValidInput(text))
-					super.replace(fb, offset, length, text, attrs);
-			}
+        y += 70;
 
-			private boolean isValidInput(String text) {
-				return text.matches("[0-9,]*"); // nur Ziffern + Komma
-			}
-		});
+        // Note Dekan
+        JLabel dekanLabel = new JLabel("Note Dekan:");
+        dekanLabel.setBounds(20, y, 200, 25);
+        main.add(dekanLabel);
 
-		main.add(noteField);
-		y += 70;
+        noteDekanField = createNoteField();
+        noteDekanField.setBounds(20, y + 25, 200, 30);
+        main.add(noteDekanField);
 
-		// Hinweis
-		JLabel hinweisLabel = new JLabel(
-				"Hinweis: Benotung wie folgt: 12:3 (Betreuer : Studiendekan).");
-		hinweisLabel.setBounds(20, y, 640, 25);
-		hinweisLabel.setForeground(Color.DARK_GRAY);
-		hinweisLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-		main.add(hinweisLabel);
+        JButton speichernDekanBtn = new JButton("Note speichern");
+        speichernDekanBtn.setBounds(240, y + 25, 160, 30);
+        styleButton(speichernDekanBtn);
+        speichernDekanBtn.addActionListener(e -> speichereEinzelNote("note_studiendekan", noteDekanField));
+        main.add(speichernDekanBtn);
 
-		y += 50;
+        y += 70;
 
-		// Bemerkung (für Dekan)
-		JLabel bemerkungLabel = new JLabel("Bemerkung:");
-		bemerkungLabel.setBounds(20, y, 200, 25);
-		main.add(bemerkungLabel);
+        // Endnote
+        JLabel endnoteLabel = new JLabel("Zusammen berechnete Note:");
+        endnoteLabel.setBounds(20, y, 300, 25);
+        main.add(endnoteLabel);
 
-		JTextField bemerkungField = new JTextField();
-		bemerkungField.setBounds(20, y + 25, 640, 30);
-		main.add(bemerkungField);
+        endnoteField = new JTextField();
+        endnoteField.setBounds(20, y + 25, 200, 30);
+        endnoteField.setEditable(false);
+        main.add(endnoteField);
 
-		y += 70;
+        y += 70;
 
-		// Absenden
-		JButton speichernBtn = new JButton("Absenden");
-		speichernBtn.setBounds(20, y, 140, 35);
-		styleButton(speichernBtn);
-		speichernBtn.addActionListener(e -> speichern(noteField, bemerkungField));
-		main.add(speichernBtn);
+        // Buttons Absenden und Zurück
+        JButton speichernBtn = new JButton("Absenden");
+        speichernBtn.setBounds(20, y, 140, 35);
+        styleButton(speichernBtn);
+        speichernBtn.addActionListener(e -> speichernAlles());
+        main.add(speichernBtn);
 
-		// Zurück
-		JButton zurueckBtn = new JButton("Zurück");
-		zurueckBtn.setBounds(180, y, 140, 35);
-		styleButton(zurueckBtn);
-		zurueckBtn.addActionListener(e -> {
-			parent.setVisible(true);
-			dispose();
-		});
-		main.add(zurueckBtn);
+        JButton zurueckBtn = new JButton("Zurück");
+        zurueckBtn.setBounds(180, y, 140, 35);
+        styleButton(zurueckBtn);
+        zurueckBtn.addActionListener(e -> {
+            parent.setVisible(true);
+            dispose();
+        });
+        main.add(zurueckBtn);
 
-		setVisible(true);
-	}
+        // Lade vorhandene Noten
+        ladeNoten();
 
-	/**
-	 * Speichert die eingegebene Note, aktualisiert die Endnote und sendet
-	 * Benachrichtigung.
-	 * 
-	 * @param noteField      JTextField mit der eingegebenen Note.
-	 * @param bemerkungField JTextField für optionale Bemerkungen.
-	 */
-	private void speichern(JTextField noteField, JTextField bemerkungField) {
-		String noteText = noteField.getText().trim();
-		String bemerkung = bemerkungField.getText().trim();
-		// 🔒 Warnung bei vorhandener Note
-		Double vorhandeneNote = ladeVorhandeneNote();
-		if (vorhandeneNote != null) {
-			int antwort = JOptionPane.showConfirmDialog(this,
-					"Es existiert bereits eine Note (" + vorhandeneNote + "). Möchten Sie diese überschreiben?",
-					"Warnung", JOptionPane.YES_NO_OPTION);
-			if (antwort != JOptionPane.YES_OPTION) {
-				parent.setVisible(true);
-				dispose();
-				return;
-			}
-		}
-		if (noteText.isEmpty()) {
-			JOptionPane.showMessageDialog(this, "Bitte Note eingeben!");
-			return;
-		}
-		// Komma → Punkt (für Double)
-		double note = Double.parseDouble(noteText.replace(",", "."));
-		try (Connection conn = DBConnection.getConnection()) {
-			// Note speichern
-			String sqlNote;
-			if (rolle.equals("betreuer")) {
-				sqlNote = """
-						    INSERT INTO noten (mnr, note_betreuer)
-						    VALUES (?, ?)
-						    ON DUPLICATE KEY UPDATE note_betreuer = ?
-						""";
-			} else {
-				sqlNote = """
-						    INSERT INTO noten (mnr, note_studiendekan)
-						    VALUES (?, ?)
-						    ON DUPLICATE KEY UPDATE note_studiendekan = ?
-						""";
-			}
-			PreparedStatement psNote = conn.prepareStatement(sqlNote);
-			psNote.setInt(1, mnr);
-			psNote.setDouble(2, note);
-			psNote.setDouble(3, note);
-			psNote.executeUpdate();
-			// Note berechnen
-			String sqlEndnote = """
-					    UPDATE noten
-					    SET endnote = (
-					        (3 * note_studiendekan + 12 * note_betreuer) / 15
-					    )
-					    WHERE mnr = ?
-					      AND note_studiendekan IS NOT NULL
-					      AND note_betreuer IS NOT NULL
-					""";
+        // Setze Editierbarkeit
+        setEditierbarkeit();
 
-			PreparedStatement psEnd = conn.prepareStatement(sqlEndnote);
-			psEnd.setInt(1, mnr);
-			psEnd.executeUpdate();
+        // Automatisches Speichern beim Fokusverlust
+        addAutoSave();
 
-			// Benachrichtigung
-			PreparedStatement psMsg = conn
-					.prepareStatement("INSERT INTO benachrichtigungen (mnr, text, datum) VALUES (?, ?, CURRENT_DATE)");
-			String text = "Neue Note vom " + rolle + ": " + noteText;
-			if (!bemerkung.isEmpty()) {
-				text += " | Bemerkung: " + bemerkung;
-			}
-			psMsg.setInt(1, mnr);
-			psMsg.setString(2, text);
-			psMsg.executeUpdate();
-			JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
-			parent.setVisible(true);
-			dispose();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Note!\n" + ex.getMessage());
-		}
-	}
+        // Berechne Endnote, falls beide vorhanden
+        berechneEndnote();
 
-	/**
-	 * Formatiert einen Button nach dem Dashboard-Design.
-	 * 
-	 * @param button JButton, der formatiert wird.
-	 */
-	private void styleButton(JButton button) {
-		button.setBackground(dashboardBlue);
-		button.setForeground(Color.WHITE);
-		button.setFocusPainted(false);
-		button.setFont(new Font("Arial", Font.PLAIN, 14));
-		button.setBorderPainted(false);
-		button.setOpaque(true);
-	}
+        setVisible(true);
+    }
 
-	/**
-	 * Lädt die vorhandene Note für den Studenten und die Rolle aus der Datenbank.
-	 * 
-	 * @return Double-Wert der Note oder null, falls keine Note vorhanden.
-	 */
-	private Double ladeVorhandeneNote() {
-		try (Connection conn = DBConnection.getConnection()) {
-			String sql;
-			if (rolle.equals("betreuer")) {
-				sql = "SELECT note_betreuer FROM noten WHERE mnr = ?";
-			} else {
-				sql = "SELECT note_studiendekan FROM noten WHERE mnr = ?";
-			}
-			PreparedStatement ps = conn.prepareStatement(sql);
-			ps.setInt(1, mnr);
-			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getDouble(1);
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return null;
-	}
+    /**
+     * Erstellt ein JTextField für Noteneingaben mit Filter für Zahlen und Komma.
+     *
+     * @return konfiguriertes JTextField
+     */
+    private JTextField createNoteField() {
+        JTextField field = new JTextField();
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+                    throws BadLocationException {
+                if (text.matches("[0-9,]*")) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+        });
+        return field;
+    }
 
+    /**
+     * Setzt die Editierbarkeit der Notenfelder abhängig von der Rolle.
+     */
+    private void setEditierbarkeit() {
+        noteBetreuerField.setEditable(rolle.equals("betreuer"));
+        noteDekanField.setEditable(rolle.equals("studiendekan"));
+    }
+
+    /**
+     * Lädt vorhandene Noten aus der Datenbank und zeigt sie in den Feldern an.
+     */
+    private void ladeNoten() {
+        try (Connection conn = DBConnection.getConnection()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT note_betreuer, note_studiendekan, endnote FROM noten WHERE mnr = ?");
+            ps.setInt(1, mnr);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                if (rs.getObject("note_betreuer") != null)
+                    noteBetreuerField.setText(rs.getDouble("note_betreuer") + "");
+                if (rs.getObject("note_studiendekan") != null)
+                    noteDekanField.setText(rs.getDouble("note_studiendekan") + "");
+                if (rs.getObject("endnote") != null)
+                    endnoteField.setText(rs.getDouble("endnote") + "");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Fügt automatisches Speichern beim Verlassen der Notenfelder hinzu.
+     */
+    private void addAutoSave() {
+        noteBetreuerField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (rolle.equals("betreuer")) {
+                    speichereEinzelNote("note_betreuer", noteBetreuerField);
+                }
+            }
+        });
+
+        noteDekanField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (rolle.equals("studiendekan")) {
+                    speichereEinzelNote("note_studiendekan", noteDekanField);
+                }
+            }
+        });
+    }
+
+    /**
+     * Speichert eine einzelne Note in der Datenbank und berechnet die Endnote neu.
+     * Zeigt eine Meldung, wenn die Note erfolgreich gespeichert wurde.
+     *
+     * @param spalte Name der Datenbankspalte ("note_betreuer" oder "note_studiendekan")
+     * @param feld   JTextField mit der Note
+     */
+    private void speichereEinzelNote(String spalte, JTextField feld) {
+        Double note = parse(feld.getText());
+        if (note == null) {
+            JOptionPane.showMessageDialog(this, "Bitte eine gültige Note eingeben!");
+            return;
+        }
+
+        try (Connection conn = DBConnection.getConnection()) {
+            // Note in der Datenbank speichern
+            PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO noten (mnr, " + spalte + ") VALUES (?, ?) " +
+                            "ON DUPLICATE KEY UPDATE " + spalte + " = ?"
+            );
+            ps.setInt(1, mnr);
+            ps.setDouble(2, note);
+            ps.setDouble(3, note);
+            int updated = ps.executeUpdate();
+
+            // Endnote berechnen, wenn beide Noten vorhanden sind
+            berechneEndnote();
+
+            // Bestätigung anzeigen
+            JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Note: " + ex.getMessage());
+        }
+    }
+
+
+    /**
+     * Berechnet die Endnote, sofern beide Einzelnoten vorhanden sind.
+     */
+    /**
+     * Berechnet die Endnote, sofern beide Einzelnoten vorhanden sind.
+     * Blinkt das Endnotenfeld grün und setzt Tooltip, wenn die Berechnung erfolgreich war.
+     */
+    private void berechneEndnote() {
+        Double betreuer = parse(noteBetreuerField.getText());
+        Double dekan = parse(noteDekanField.getText());
+
+        if (betreuer != null && dekan != null) {
+            double endnote = (3 * dekan + 12 * betreuer) / 15;
+            endnoteField.setText(String.format("%.2f", endnote).replace(".", ","));
+            
+            // Tooltip setzen
+            endnoteField.setToolTipText("Endnote aktualisiert");
+            
+            // Hintergrund kurz grün aufblinken lassen
+            Color original = endnoteField.getBackground();
+            endnoteField.setBackground(Color.GREEN);
+            new javax.swing.Timer(1000, e -> endnoteField.setBackground(original)).start();
+        }
+    }
+
+
+    /**
+     * Speichert alle Notenfelder (Betreuer und Dekan) manuell.
+     */
+    private void speichernAlles() {
+        speichereEinzelNote("note_betreuer", noteBetreuerField);
+        speichereEinzelNote("note_studiendekan", noteDekanField);
+        JOptionPane.showMessageDialog(this, "Alle Noten erfolgreich gespeichert!");
+    }
+
+    /**
+     * Parst einen Texteingabewert in einen Double.
+     *
+     * @param text Eingabetext
+     * @return Double-Wert oder null
+     */
+    private Double parse(String text) {
+        if (text == null || text.isBlank()) return null;
+        return Double.parseDouble(text.replace(",", "."));
+    }
+
+    /**
+     * Formatiert einen Button im Dashboard-Stil.
+     *
+     * @param button JButton
+     */
+    private void styleButton(JButton button) {
+        button.setBackground(dashboardBlue);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setFont(new Font("Arial", Font.PLAIN, 13));
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+    }
 }
