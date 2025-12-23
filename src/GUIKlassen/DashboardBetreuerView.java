@@ -80,6 +80,11 @@ public class DashboardBetreuerView extends JFrame {
 
 		JButton noteneingabeBtn = createBlueButton("Noteneingabe", hftBlue);
 		JButton freigabeBtn = createBlueButton("Freigabe der Bachelorarbeit", hftBlue);
+		freigabeBtn.addActionListener(e -> {
+		    setVisible(false);
+		    new FreigabeDerBachelorarbeit(this).setVisible(true);
+		});
+
 
 		noteneingabeBtn.addActionListener(e -> {
 			setVisible(false); // 🔹 Dashboard ausblenden
