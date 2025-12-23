@@ -17,12 +17,15 @@ import java.sql.ResultSet;
 public class NotenlisteStudiendekan extends JFrame {
 
     private DashboardStudiendekan dashboard;
+    private JTable table; // Instanzvariable für die Tabelle
 
     /**
-     * Konstruktor, der die GUI aufbaut und die Noten aus der Datenbank lädt.
+     * Konstruktor, der die GUI aufbaut, die Tabelle initialisiert, Filter-Felder hinzufügt
+     * und die Noten aus der Datenbank lädt.
      *
      * @param dashboard Referenz zum Studiendekan-Dashboard
-     */
+   	 */
+    
     public NotenlisteStudiendekan(DashboardStudiendekan dashboard) {
         this.dashboard = dashboard;
 
@@ -92,7 +95,7 @@ public class NotenlisteStudiendekan extends JFrame {
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
         table.setRowSorter(sorter);
 
-        // === Sortable Header Renderer setzen ===
+        // Sortable Header Renderer setzen
         JTableHeader th = table.getTableHeader();
         th.setDefaultRenderer(new SortableHeaderRenderer(th.getDefaultRenderer()));
 
@@ -125,13 +128,47 @@ public class NotenlisteStudiendekan extends JFrame {
             }
         });
 
+        // Filter-Button ActionListener
+        filterBtn.addActionListener(e -> {
+            String pruefungText = pruefungField.getText().trim().toLowerCase();
+            String semesterText = semField.getText().trim().toLowerCase();
+
+            java.util.List<RowFilter<Object,Object>> filters = new java.util.ArrayList<>();
+
+            if (!pruefungText.isEmpty()) {
+                filters.add(RowFilter.regexFilter("(?i)" + pruefungText, 3));
+            }
+
+            if (!semesterText.isEmpty()) {
+                filters.add(RowFilter.regexFilter("(?i)" + semesterText, 2));
+            }
+
+            // Matrikelnummer-Filter (numerisch)
+            String mnrText = pruefungField.getText().trim();
+            if (!mnrText.isEmpty()) {
+                try {
+                    int mnr = Integer.parseInt(mnrText);
+                    filters.add(RowFilter.numberFilter(RowFilter.ComparisonType.EQUAL, mnr, 0));
+                } catch (NumberFormatException ignored) {
+                }
+            }
+
+            if (filters.isEmpty()) {
+                sorter.setRowFilter(null);
+            } else {
+                sorter.setRowFilter(RowFilter.andFilter(filters));
+            }
+        });
+
+        // Datenbank laden
         ladeNotenAusDatenbank(model);
     }
+
 
     /**
      * Lädt alle Noten aus der Datenbank in das übergebene TableModel.
      *
-     * @param model DefaultTableModel der JTabelle, in das die Daten geladen werden.
+     * @param model DefaultTableModel der JTable, in das die Daten geladen werden.
      */
     private void ladeNotenAusDatenbank(DefaultTableModel model) {
         model.setRowCount(0);
@@ -183,6 +220,12 @@ public class NotenlisteStudiendekan extends JFrame {
             if (comp instanceof JLabel label) {
                 label.setHorizontalTextPosition(SwingConstants.LEFT);
 
+                // KEIN Icon für erste Spalte
+                if (column == 0) {
+                    label.setIcon(null);
+                    return label;
+                }
+
                 RowSorter<?> sorter = table.getRowSorter();
                 SortOrder order = SortOrder.UNSORTED;
                 if (sorter != null) {
@@ -206,10 +249,11 @@ public class NotenlisteStudiendekan extends JFrame {
         }
     }
 
+
     /**
-     * Main-Methode zum Testen der Notenliste
+     * Main-Methode zum Testen der Notenliste.
      *
-     * @param args Kommandozeilenargumente (werden nicht verwendet).
+     * @param args Kommandozeilenargumente (werden nicht verwendet)
      */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new NotenlisteStudiendekan(null).setVisible(true));
