@@ -4,7 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 import Datenbank.DBConnection;
-import Datenbank.UserDAO;
 
 /**
  * Dashboard für Studenten. Zeigt die Funktionen für Studierende an, z.B.
@@ -28,57 +27,15 @@ public class DashboardStudent extends JFrame {
 		setLocationRelativeTo(null);
 		setLayout(null);
 
-        // =======================
-        // Account löschen Button (rot, links vom Logout)
-        // =======================
-        JButton deleteAccountBtn = new JButton("Account löschen");
-        deleteAccountBtn.setBounds(740, 20, 140, 40); // Links vom Logout
-        deleteAccountBtn.setBackground(new Color(180, 30, 50)); // Rot
-        deleteAccountBtn.setForeground(Color.WHITE);
-        deleteAccountBtn.setFocusPainted(false);
-        deleteAccountBtn.setFont(new Font("Arial", Font.BOLD, 14));
-        deleteAccountBtn.setOpaque(true);
-        deleteAccountBtn.setBorderPainted(false);
-        add(deleteAccountBtn);
-
-        deleteAccountBtn.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Sind Sie sicher, dass Sie Ihren Account löschen möchten? Dies kann nicht rückgängig gemacht werden!",
-                "Account löschen bestätigen",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-            );
-
-            if (confirm == JOptionPane.YES_OPTION) {
-                boolean success = UserDAO.loescheBenutzer(mnr);
-                if (success) {
-                    JOptionPane.showMessageDialog(this, "Account erfolgreich gelöscht!");
-                    new LoginFenster();
-                    dispose();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Fehler beim Löschen des Accounts!");
-                }
-            }
-        });
-
-        // =======================
-        // Logout Button (rot, rechts neben Löschen)
-        // =======================
-        JButton logoutBtn = new JButton("Ausloggen");
-        logoutBtn.setBounds(900, 20, 140, 40); // Rechts vom Löschen-Button
-        logoutBtn.setBackground(new Color(180, 30, 50));
-        logoutBtn.setForeground(Color.WHITE);
-        logoutBtn.setFocusPainted(false);
-        logoutBtn.setFont(new Font("Arial", Font.BOLD, 14));
-        logoutBtn.setOpaque(true);
-        logoutBtn.setBorderPainted(false);
-        add(logoutBtn);
-
-        logoutBtn.addActionListener(e -> {
-            new LoginFenster();
-            dispose();
-        });
+		JButton logoutBtn = new JButton("Ausloggen");
+		logoutBtn.setBounds(900, 20, 140, 40);
+		logoutBtn.setBackground(new Color(180, 30, 50));
+		logoutBtn.setForeground(Color.WHITE);
+		logoutBtn.setFocusPainted(false);
+		logoutBtn.setFont(new Font("Arial", Font.BOLD, 14));
+		logoutBtn.setOpaque(true);
+		logoutBtn.setBorderPainted(false);
+		add(logoutBtn);
 
 		JPanel leftPanel = new JPanel(null);
 		leftPanel.setBounds(60, 100, 380, 450);
@@ -128,13 +85,6 @@ public class DashboardStudent extends JFrame {
 
 		// >>> NEU: Benachrichtigungen laden
 		ladeBenachrichtigungen(rightPanel);
-		logoutBtn.addActionListener(e -> {
-            new LoginFenster();
-            dispose();
-        });
-
-        ladeStudentDaten();
-        setVisible(true);
 
 		// ---------- BUTTON ACTIONS ----------
 
@@ -168,8 +118,6 @@ public class DashboardStudent extends JFrame {
 
 		ladeStudentDaten();
 		setVisible(true);
-		
-
 	}
 
 	/**
@@ -226,34 +174,24 @@ public class DashboardStudent extends JFrame {
 	private void ladeBenachrichtigungen(JPanel panel) {
 		try (Connection conn = DBConnection.getConnection()) {
 			PreparedStatement ps = conn.prepareStatement(
-	                "SELECT titel, text, erstellt_am FROM benachrichtigung " +
-	                "WHERE empfaenger_mnr = ? AND empfaenger_rolle = 'STUDENT' " +
-	                "ORDER BY erstellt_am DESC"
-	            ); // <<< FIX: richtige Tabelle & Spalten
+					"SELECT text, datum FROM benachrichtigungen " +
+					"WHERE mnr = ? ORDER BY datum DESC"
+			);
+			ps.setInt(1, mnr);
+			ResultSet rs = ps.executeQuery();
 
-	            ps.setInt(1, mnr);
-	            ResultSet rs = ps.executeQuery();
-
-	            int y = 70;
-
-	            while (rs.next()) {
-	                JLabel msg = new JLabel(
-	                    "<html><b>" + rs.getString("titel") + "</b><br>"
-	                    + rs.getString("text") + "<br>"
-	                    + "<i>" + rs.getTimestamp("erstellt_am") + "</i></html>"
-	                ); // <<< FIX: kein datum mehr
-
-	                msg.setBounds(20, y, 460, 70);
-	                panel.add(msg);
-	                y += 80;
-	            }
-
-	            panel.revalidate();
-	            panel.repaint();
-
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
+			int y = 70;
+			while (rs.next()) {
+				JLabel msg = new JLabel(
+						"• " + rs.getDate("datum") + ": " + rs.getString("text")
+				);
+				msg.setBounds(20, y, 460, 25);
+				panel.add(msg);
+				y += 30;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
