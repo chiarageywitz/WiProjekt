@@ -1,15 +1,21 @@
 package GUIKlassen;
 
+import Datenbank.DBConnection;
+import Datenbank.StudentDAO.StudentInfo;
+import Util.UIColors;
+
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 /**
  * GUI-Fenster für die Freigabe der Bachelorarbeit durch das Unternehmen.
  */
 public class FreigabeDerBachelorarbeit extends JFrame {
 
-    private DashboardBetreuerView dashboard; // 🔹 NEU
+    private DashboardBetreuerView dashboard;
 
     private JTextField nameField;
     private JTextField themaField;
@@ -20,7 +26,7 @@ public class FreigabeDerBachelorarbeit extends JFrame {
     private JCheckBox decline;
     private JTextArea begruendungField;
 
-    public FreigabeDerBachelorarbeit(DashboardBetreuerView dashboard) { // 🔹 NEU
+    public FreigabeDerBachelorarbeit(DashboardBetreuerView dashboard) {
         this.dashboard = dashboard;
 
         setTitle("Freigabe der Bachelorarbeit");
@@ -28,62 +34,48 @@ public class FreigabeDerBachelorarbeit extends JFrame {
         setSize(700, 700);
         setLocationRelativeTo(null);
 
-        JPanel main = new JPanel();
-        main.setLayout(null);
+        JPanel main = new JPanel(null);
         add(main);
 
-        /* ===== HEADER (links Titel, rechts Zurück) ===== */
+        /* ===== HEADER ===== */
         JPanel headerPanel = new JPanel(null);
         headerPanel.setBounds(10, 10, 660, 35);
         headerPanel.setBackground(Color.WHITE);
         main.add(headerPanel);
 
         JPanel titlePanel = new JPanel();
-        titlePanel.setBackground(new Color(0, 45, 150));
-        titlePanel.setBounds(0, 0, 360, 35); // 🔹 nur links
+        titlePanel.setBackground(UIColors.PRIMARY_BLUE);
+        titlePanel.setBounds(0, 0, 360, 35);
         JLabel titleLabel = new JLabel("Freigabe der Bachelorarbeit");
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
         titlePanel.add(titleLabel);
         headerPanel.add(titlePanel);
 
-        JButton backBtn = new JButton("Zurück"); // 🔹 NEU
+        JButton backBtn = new JButton("Zurück");
         backBtn.setBounds(560, 5, 90, 25);
-        backBtn.setFocusPainted(false);
+        styleButton(backBtn);
         backBtn.addActionListener(e -> {
             dispose();
             dashboard.setVisible(true);
         });
         headerPanel.add(backBtn);
 
-        /* ===== INFO TEXT ===== */
+        /* ===== INFO ===== */
         JTextArea info = new JTextArea(
                 "Bitte prüfen Sie und erteilen Sie die Freigabe.\n"
-                        + "Nach ihrer Freigabe wird automatisch der Studiendekan zur Genehmigung gefordert.");
+                        + "Nach Ihrer Freigabe wird automatisch der Studiendekan zur Genehmigung gefordert.");
         info.setEditable(false);
         info.setOpaque(false);
-        info.setFont(new Font("Arial", Font.PLAIN, 12));
         info.setBounds(20, 55, 640, 40);
         main.add(info);
 
         int y = 110;
 
-        /* ===== EINGABEFELDER ===== */
-        nameField = addLabelTextfield(main, "Name", y, "");
-        y += 35;
-
-        themaField = addLabelTextfield(main, "Thema", y, "");
-        y += 35;
-
-        betreuerUnternehmenField = addLabelTextfield(main, "Betreuer im Unternehmen", y, "");
-        y += 35;
-
-        zeitraumField = addLabelTextfield(main, "Zeitraum", y, "");
-        y += 50;
-
-        /* ===== NDA ===== */
-        addFileButton(main, "NDA", y);
-        y += 60;
+        nameField = addLabelTextfield(main, "Name", y); y += 35;
+        themaField = addLabelTextfield(main, "Thema", y); y += 35;
+        betreuerUnternehmenField = addLabelTextfield(main, "Betreuer im Unternehmen", y); y += 35;
+        zeitraumField = addLabelTextfield(main, "Zeitraum", y); y += 50;
 
         /* ===== FREIGABE ===== */
         approve = new JCheckBox("Thema freigeben");
@@ -109,66 +101,138 @@ public class FreigabeDerBachelorarbeit extends JFrame {
         scroll.setBounds(20, y + 25, 640, 150);
         main.add(scroll);
 
-        /* ===== BUTTONS ===== */
-        JButton rueckgabeBtn = new JButton("Rückgabe an Studierenden");
-        rueckgabeBtn.setBounds(300, 600, 220, 40);
-        styleButton(rueckgabeBtn);
-        rueckgabeBtn.addActionListener(e -> speichern());
-        main.add(rueckgabeBtn);
-
-        JButton freigabeBtn = new JButton("Freigeben");
+        /* ===== BUTTON ===== */
+        JButton freigabeBtn = new JButton("Absenden");
         freigabeBtn.setBounds(540, 600, 120, 40);
         styleButton(freigabeBtn);
-        freigabeBtn.addActionListener(e -> {
-            if (!approve.isSelected()) {
+        freigabeBtn.addActionListener(e -> verarbeiten());
+        main.add(freigabeBtn);
+
+        ladeAllgemeineInformationen();
+    }
+
+    /**
+     * Verarbeitet Freigabe oder Ablehnung der Bachelorarbeit
+     * und erzeugt die korrekten Benachrichtigungen.
+     */
+    private void verarbeiten() {
+
+        if (!approve.isSelected() && !decline.isSelected()) {
+            JOptionPane.showMessageDialog(this,
+                    "Bitte wählen Sie »Thema freigeben« oder »Thema ablehnen«!");
+            return;
+        }
+
+        StudentInfo s = dashboard.getStudent();
+
+        try (Connection conn = DBConnection.getConnection()) {
+
+            if (approve.isSelected()) {
+                // ===== Student =====
+                insertNotification(conn, s.mnr,
+                        "Bachelorarbeit wurde vom Betreuer freigegeben.");
+
+                // ===== Studiendekan =====
+                insertNotification(conn, 0,
+                        "Genehmigung der Bachelorarbeit von " + s.name + " erforderlich.");
+
                 JOptionPane.showMessageDialog(this,
-                        "Bitte zuerst »Thema freigeben« auswählen!");
-                return;
+                        "Bachelorarbeit wurde freigegeben.");
+
+            } else {
+                String begruendung = begruendungField.getText().trim();
+                if (begruendung.isEmpty()) {
+                    JOptionPane.showMessageDialog(this,
+                            "Bitte geben Sie eine Begründung für die Ablehnung an!");
+                    return;
+                }
+
+                // ===== NUR Student =====
+                insertNotification(conn, s.mnr,
+                        "Bachelorarbeit wurde abgelehnt: " + begruendung);
+
+                JOptionPane.showMessageDialog(this,
+                        "Bachelorarbeit wurde abgelehnt.");
             }
-            JOptionPane.showMessageDialog(this, "Bachelorarbeit wurde freigegeben.");
+
             dispose();
             dashboard.setVisible(true);
-        });
-        main.add(freigabeBtn);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Aktion konnte nicht gespeichert werden!");
+        }
+    }
+
+    /**
+     * Speichert eine Benachrichtigung in der Datenbank.
+     *
+     * @param conn offene DB-Verbindung
+     * @param mnr  Matrikelnummer oder NULL für Studiendekan
+     * @param text Nachrichtentext
+     */
+    private void insertNotification(Connection conn, Integer mnr, String text) throws Exception {
+        PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO benachrichtigungen (mnr, text, datum) VALUES (?, ?, CURRENT_DATE)"
+        );
+        if (mnr == null)
+            ps.setNull(1, java.sql.Types.INTEGER);
+        else
+            ps.setInt(1, mnr);
+
+        ps.setString(2, text);
+        ps.executeUpdate();
+    }
+
+    /* ===== DATEN LADEN ===== */
+    private void ladeAllgemeineInformationen() {
+        try {
+            StudentInfo s = dashboard.getStudent();
+            nameField.setText(s.name);
+
+            String sql = """
+                SELECT thema, zeitraum, betreuer_unternehmen
+                FROM allgemeine_informationen
+                WHERE mnr = ?
+            """;
+
+            try (Connection conn = DBConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+
+                ps.setInt(1, s.mnr);
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    themaField.setText(rs.getString("thema"));
+                    zeitraumField.setText(rs.getString("zeitraum"));
+                    betreuerUnternehmenField.setText(rs.getString("betreuer_unternehmen"));
+                }
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Fehler beim Laden der Daten");
+        }
     }
 
     /* ===== HILFSMETHODEN ===== */
-    private JTextField addLabelTextfield(JPanel panel, String label, int y, String value) {
+    private JTextField addLabelTextfield(JPanel panel, String label, int y) {
         JLabel l = new JLabel(label + ":");
         l.setBounds(20, y, 200, 25);
         panel.add(l);
 
-        JTextField tf = new JTextField(value);
+        JTextField tf = new JTextField();
         tf.setBounds(220, y, 430, 25);
         panel.add(tf);
         return tf;
     }
 
-    private void addFileButton(JPanel panel, String label, int y) {
-        JLabel l = new JLabel(label + ":");
-        l.setBounds(20, y, 200, 25);
-        panel.add(l);
-
-        JButton openBtn = new JButton("Öffnen");
-        openBtn.setBounds(220, y, 120, 25);
-        openBtn.addActionListener(e ->
-                new JFileChooser(new File(System.getProperty("user.home"))).showOpenDialog(panel)
-        );
-        panel.add(openBtn);
-    }
-
     private void styleButton(JButton button) {
-        button.setBackground(new Color(0, 45, 150));
+        button.setBackground(UIColors.PRIMARY_BLUE);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setOpaque(true);
     }
-
-    private void speichern() {
-        JOptionPane.showMessageDialog(this,
-                "Rückgabe an Studierenden wurde gespeichert.");
-        dispose();
-        dashboard.setVisible(true);
-    }
 }
+
+

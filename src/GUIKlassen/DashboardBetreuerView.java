@@ -154,4 +154,9 @@ public class DashboardBetreuerView extends JFrame {
 		btn.setMaximumSize(new Dimension(240, 60));
 		return btn;
 	}
+	
+	public StudentInfo getStudent() {
+	    return student;
+	}
+
 }
