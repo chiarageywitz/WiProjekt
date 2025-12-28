@@ -1,6 +1,7 @@
 package GUIKlassen;
 
 import Datenbank.StudentDAO.StudentInfo;
+import Util.UIColors;
 
 import javax.swing.*;
 import java.awt.*;
@@ -56,11 +57,14 @@ public class DashboardBetreuerView extends JFrame {
 
 		// Zurück-Button jetzt gleich groß wie Logout
 		JButton backBtn = new JButton("Zurück");
-		backBtn.setPreferredSize(logoutBtn.getPreferredSize()); // gleiche Größe
+		backBtn.setPreferredSize(logoutBtn.getPreferredSize());
+		backBtn.setBackground(UIColors.PRIMARY_BLUE);
+		backBtn.setForeground(Color.WHITE);
 		backBtn.setFocusPainted(false);
+		backBtn.setBorderPainted(false);
 		backBtn.addActionListener(e -> {
-			new StudentenSucheView();
-			dispose();
+		    new StudentenSucheView();
+		    dispose();
 		});
 
 		buttonPanel.add(backBtn);

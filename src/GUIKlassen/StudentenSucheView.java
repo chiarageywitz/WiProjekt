@@ -2,6 +2,7 @@ package GUIKlassen;
 
 import Datenbank.StudentDAO;
 import Datenbank.StudentDAO.StudentInfo;
+import Util.UIColors;
 
 import javax.swing.*;
 import java.awt.*;
@@ -59,6 +60,11 @@ public class StudentenSucheView extends JFrame {
 		JTextField searchField = new JTextField();
 		JButton suchenBtn = new JButton("Suchen");
 		suchenBtn.setPreferredSize(new Dimension(100, 30));
+		suchenBtn.setBackground(UIColors.PRIMARY_BLUE);
+		suchenBtn.setForeground(Color.WHITE);
+		suchenBtn.setFocusPainted(false);
+		suchenBtn.setBorderPainted(false);
+
 
 		JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
 		searchPanel.add(searchField, BorderLayout.CENTER);

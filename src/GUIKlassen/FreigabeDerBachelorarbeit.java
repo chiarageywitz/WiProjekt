@@ -52,14 +52,6 @@ public class FreigabeDerBachelorarbeit extends JFrame {
         titlePanel.add(titleLabel);
         headerPanel.add(titlePanel);
 
-        JButton backBtn = new JButton("Zurück");
-        backBtn.setBounds(560, 5, 90, 25);
-        styleButton(backBtn);
-        backBtn.addActionListener(e -> {
-            dispose();
-            dashboard.setVisible(true);
-        });
-        headerPanel.add(backBtn);
 
         /* ===== INFO ===== */
         JTextArea info = new JTextArea(
@@ -102,6 +94,16 @@ public class FreigabeDerBachelorarbeit extends JFrame {
         main.add(scroll);
 
         /* ===== BUTTON ===== */
+        JButton backBottomBtn = new JButton("Zurück");
+        backBottomBtn.setBounds(400, 600, 120, 40);
+        styleButton(backBottomBtn);
+        backBottomBtn.addActionListener(e -> {
+            dispose();
+            dashboard.setVisible(true);
+        });
+        main.add(backBottomBtn);
+
+        
         JButton freigabeBtn = new JButton("Absenden");
         freigabeBtn.setBounds(540, 600, 120, 40);
         styleButton(freigabeBtn);
