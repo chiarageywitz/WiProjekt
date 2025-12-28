@@ -24,9 +24,10 @@ public class StudentenSucheView extends JFrame {
 	 */
 	public StudentenSucheView() {
 		setTitle("Studenten-Suche");
-		setSize(800, 450);
+		setSize(BaseFrame.WIDTH, BaseFrame.HEIGHT);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
 
 		Color hftRed = new Color(204, 0, 0);
 		Color panelBg = new Color(245, 245, 245);

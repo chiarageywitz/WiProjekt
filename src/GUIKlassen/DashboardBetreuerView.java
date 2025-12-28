@@ -24,9 +24,10 @@ public class DashboardBetreuerView extends JFrame {
 		this.student = student;
 
 		setTitle("Betreuer-Übersicht");
-		setSize(1000, 600);
+		setSize(BaseFrame.WIDTH, BaseFrame.HEIGHT);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
 
 		Color hftRed = new Color(226, 0, 26);
 		Color hftBlue = new Color(0, 45, 150);
