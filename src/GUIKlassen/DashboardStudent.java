@@ -172,27 +172,47 @@ public class DashboardStudent extends JFrame {
 	 * @param panel Panel, in dem die Benachrichtigungen angezeigt werden
 	 */
 	private void ladeBenachrichtigungen(JPanel panel) {
-		try (Connection conn = DBConnection.getConnection()) {
-			PreparedStatement ps = conn.prepareStatement(
-					"SELECT text, datum FROM benachrichtigungen " +
-					"WHERE mnr = ? ORDER BY datum DESC"
-			);
-			ps.setInt(1, mnr);
-			ResultSet rs = ps.executeQuery();
 
-			int y = 70;
-			while (rs.next()) {
-				JLabel msg = new JLabel(
-						"• " + rs.getDate("datum") + ": " + rs.getString("text")
-				);
-				msg.setBounds(20, y, 460, 25);
-				panel.add(msg);
-				y += 30;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	    JTextArea textArea = new JTextArea();
+	    textArea.setEditable(false);
+	    textArea.setLineWrap(true);       // ✅ Zeilenumbruch
+	    textArea.setWrapStyleWord(true);  // ✅ Wortumbruch
+	    textArea.setFont(new Font("Arial", Font.PLAIN, 13));
+
+	    JScrollPane scrollPane = new JScrollPane(
+	            textArea,
+	            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,   // ⬆⬇
+	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER   // ↔ aus
+	    );
+
+	    // PASST GENAU in dein rightPanel
+	    scrollPane.setBounds(10, 60, 480, 380);
+	    panel.add(scrollPane);
+
+	    try (Connection conn = DBConnection.getConnection()) {
+	        PreparedStatement ps = conn.prepareStatement(
+	                "SELECT text, datum FROM benachrichtigungen " +
+	                "WHERE mnr = ? ORDER BY datum DESC"
+	        );
+	        ps.setInt(1, mnr);
+	        ResultSet rs = ps.executeQuery();
+
+	        StringBuilder sb = new StringBuilder();
+	        while (rs.next()) {
+	            sb.append("• ")
+	              .append(rs.getDate("datum"))
+	              .append(": ")
+	              .append(rs.getString("text"))
+	              .append("\n\n");
+	        }
+
+	        textArea.setText(sb.toString());
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 	}
+
 
 	/**
 	 * Main-Methode zum Testen des Dashboards.
