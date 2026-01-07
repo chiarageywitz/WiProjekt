@@ -9,124 +9,140 @@ import java.awt.*;
 import java.util.List;
 
 /**
- * JFrame-Klasse für die Studenten-Suche. Ermöglicht die Suche nach Studenten
- * nach Name und öffnet das Dashboard des Betreuers für den ausgewählten
- * Studenten.
+ * JFrame-Klasse für die Studenten-Suche.
  */
 public class StudentenSucheView extends JFrame {
 
-	private DefaultListModel<StudentInfo> studentModel;
-	private JList<StudentInfo> studentList;
+    private DefaultListModel<StudentInfo> studentModel;
+    private JList<StudentInfo> studentList;
 
-	/**
-	 * Konstruktor für die GUI der Studenten-Suche. Baut die Suchmaske auf und lädt
-	 * Studenten aus der Datenbank.
-	 */
-	public StudentenSucheView() {
-		setTitle("Studenten-Suche");
-		setSize(BaseFrame.WIDTH, BaseFrame.HEIGHT);
-		setLocationRelativeTo(null);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    public StudentenSucheView() {
+        setTitle("Studenten-Suche");
+        setSize(BaseFrame.WIDTH, BaseFrame.HEIGHT);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        Color hftRed = UIColors.HFT_RED;
+        Color panelBg = UIColors.BACKGROUND;
 
-		Color hftRed = UIColors.HFT_RED;
-		Color panelBg = UIColors.BACKGROUND;
+        // ================= HEADER =================
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        JLabel title = new JLabel("Studenten-Suche");
+        title.setFont(new Font("Arial", Font.BOLD, 22));
 
-		// ================= HEADER =================
-		JPanel header = new JPanel(new BorderLayout());
-		header.setBackground(Color.WHITE);
-		header.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JButton logoutBtn = new JButton("Ausloggen");
+        logoutBtn.setBackground(hftRed);
+        logoutBtn.setForeground(Color.WHITE);
+        logoutBtn.setFocusPainted(false);
+        logoutBtn.addActionListener(e -> {
+            new LoginFenster();
+            dispose();
+        });
 
-		JLabel title = new JLabel("Studenten-Suche");
-		title.setFont(new Font("Arial", Font.BOLD, 22));
+        header.add(title, BorderLayout.WEST);
+        header.add(logoutBtn, BorderLayout.EAST);
+        add(header, BorderLayout.NORTH);
 
-		JButton logoutBtn = new JButton("Ausloggen");
-		logoutBtn.setBackground(hftRed);
-		logoutBtn.setForeground(Color.WHITE);
-		logoutBtn.setFocusPainted(false);
-		logoutBtn.addActionListener(e -> {
-			new LoginFenster();
-			dispose();
-		});
+        // ================= MAIN =================
+        JPanel mainPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        mainPanel.setBackground(panelBg);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-		header.add(title, BorderLayout.WEST);
-		header.add(logoutBtn, BorderLayout.EAST);
-		add(header, BorderLayout.NORTH);
+        // ===== LINKE SEITE: STUDENTENSUCHE =====
+        JPanel leftPanel = new JPanel(new BorderLayout(10, 10));
+        leftPanel.setBackground(panelBg);
 
-		// ================= MAIN =================
-		JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-		mainPanel.setBackground(panelBg);
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        JTextField searchField = new JTextField();
+        JButton suchenBtn = new JButton("Suchen");
+        suchenBtn.setPreferredSize(new Dimension(120, 30));
+        suchenBtn.setBackground(UIColors.PRIMARY_BLUE);
+        suchenBtn.setForeground(Color.WHITE);
+        suchenBtn.setFocusPainted(false);
+        suchenBtn.setBorderPainted(false);
 
-		JTextField searchField = new JTextField();
-		JButton suchenBtn = new JButton("Suchen");
-		suchenBtn.setPreferredSize(new Dimension(100, 30));
-		suchenBtn.setBackground(UIColors.PRIMARY_BLUE);
-		suchenBtn.setForeground(Color.WHITE);
-		suchenBtn.setFocusPainted(false);
-		suchenBtn.setBorderPainted(false);
+        JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
+        searchPanel.setBackground(panelBg);
+        searchPanel.add(searchField, BorderLayout.CENTER);
+        searchPanel.add(suchenBtn, BorderLayout.EAST);
 
+        studentModel = new DefaultListModel<>();
+        studentList = new JList<>(studentModel);
+        JScrollPane scrollPane = new JScrollPane(studentList);
 
-		JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
-		searchPanel.add(searchField, BorderLayout.CENTER);
-		searchPanel.add(suchenBtn, BorderLayout.EAST);
+        JButton weiterBtn = new JButton("Weiter");
+        weiterBtn.setBackground(hftRed);
+        weiterBtn.setForeground(Color.WHITE);
+        weiterBtn.setFocusPainted(false);
+        weiterBtn.setPreferredSize(new Dimension(120, 40));
 
-		studentModel = new DefaultListModel<>();
-		studentList = new JList<>(studentModel);
-		JScrollPane scrollPane = new JScrollPane(studentList);
+        suchenBtn.addActionListener(e -> sucheStudenten(searchField.getText()));
+        weiterBtn.addActionListener(e -> öffneDashboard());
 
-		JButton weiterBtn = new JButton("Weiter");
-		weiterBtn.setBackground(hftRed);
-		weiterBtn.setForeground(Color.WHITE);
-		weiterBtn.setFocusPainted(false);
+        leftPanel.add(searchPanel, BorderLayout.NORTH);
+        leftPanel.add(scrollPane, BorderLayout.CENTER);
+        leftPanel.add(weiterBtn, BorderLayout.SOUTH);
 
-		suchenBtn.addActionListener(e -> sucheStudenten(searchField.getText()));
-		weiterBtn.addActionListener(e -> öffneDashboard());
+        // ===== RECHTE SEITE: PORTAL-BENACHRICHTIGUNGEN =====
+        JPanel portalBox = createBoxPanel("Portal-Benachrichtigungen", hftRed);
+        JTextArea portalArea = new JTextArea();
+        portalArea.setEditable(false);
+        portalBox.add(new JScrollPane(portalArea));
 
-		mainPanel.add(searchPanel, BorderLayout.NORTH);
-		mainPanel.add(scrollPane, BorderLayout.CENTER);
-		mainPanel.add(weiterBtn, BorderLayout.SOUTH);
+        // ===== ZUSAMMENBAU =====
+        mainPanel.add(leftPanel);
+        mainPanel.add(portalBox);
 
-		add(mainPanel, BorderLayout.CENTER);
-		setVisible(true);
-	}
+        add(mainPanel, BorderLayout.CENTER);
+        setVisible(true);
+    }
 
-	/**
-	 * Führt die Suche nach Studenten anhand des eingegebenen Namens aus.
-	 *
-	 * @param name Suchtext.
-	 */
-	private void sucheStudenten(String name) {
-		try {
-			studentModel.clear();
-			List<StudentInfo> studenten = StudentDAO.sucheStudenten(name);
-			for (StudentInfo s : studenten) {
-				studentModel.addElement(s);
-			}
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "Fehler bei der Suche");
-		}
-	}
+    // ================= LOGIK =================
+    private void sucheStudenten(String name) {
+        try {
+            studentModel.clear();
+            List<StudentInfo> studenten = StudentDAO.sucheStudenten(name);
+            for (StudentInfo s : studenten) {
+                studentModel.addElement(s);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Fehler bei der Suche");
+        }
+    }
 
-	/**
-	 * Öffnet das Dashboard für den ausgewählten Studenten.
-	 */
-	private void öffneDashboard() {
-		StudentInfo student = studentList.getSelectedValue();
-		if (student == null) {
-			JOptionPane.showMessageDialog(this, "Bitte zuerst einen Studenten auswählen!");
-			return;
-		}
-		new DashboardBetreuerView(student);
-		dispose();
-	}
-	/**
-	 * Main-Methode zum Starten der Studenten Suche View.
-	 * 
-	 * @param args Kommandozeilenargumente (werden nicht verwendet).
-	 */
-	public static void main(String[] args) {
-		new StudentenSucheView();
-	}
+    private void öffneDashboard() {
+        StudentInfo student = studentList.getSelectedValue();
+        if (student == null) {
+            JOptionPane.showMessageDialog(this, "Bitte zuerst einen Studenten auswählen!");
+            return;
+        }
+        new DashboardBetreuerView(student);
+        dispose();
+    }
+
+    // ================= HILFSMETHODEN =================
+    private JPanel createBoxPanel(String title, Color headerColor) {
+        JPanel box = new JPanel();
+        box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+        box.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2, true));
+        box.setBackground(Color.WHITE);
+
+        JLabel label = new JLabel(title);
+        label.setOpaque(true);
+        label.setBackground(headerColor);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Arial", Font.BOLD, 16));
+        label.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        box.add(label);
+        box.add(Box.createVerticalStrut(10));
+        return box;
+    }
+
+    public static void main(String[] args) {
+        new StudentenSucheView();
+    }
 }
