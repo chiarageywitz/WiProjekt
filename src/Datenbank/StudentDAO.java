@@ -33,7 +33,7 @@ public class StudentDAO {
 		String sql = """
 				    SELECT s.MNR, s.Vorname, a.thema
 				    FROM studentendb s
-				    LEFT JOIN allgemeine_informationen a ON s.MNR = a.mnr
+				    LEFT JOIN antraege a ON s.MNR = a.student_mnr
 				    WHERE s.Vorname LIKE ?
 				""";
 
@@ -56,7 +56,7 @@ public class StudentDAO {
 		String sql = """
 				    SELECT s.MNR, s.Vorname, a.thema
 				    FROM studentendb s
-				    LEFT JOIN allgemeine_informationen a ON s.MNR = a.mnr
+				    LEFT JOIN antraege a ON s.MNR = a.student_mnr
 				    WHERE s.MNR = ?
 				    LIMIT 1
 				""";
@@ -80,7 +80,7 @@ public class StudentDAO {
 		String sql = """
 				    SELECT s.MNR, s.Vorname, a.thema
 				    FROM studentendb s
-				    LEFT JOIN allgemeine_informationen a ON s.MNR = a.mnr
+				    LEFT JOIN antraege a ON s.MNR = a.student_mnr
 				    WHERE s.rolle = 'student'
 				""";
 

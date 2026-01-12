@@ -203,42 +203,21 @@ public class DashboardStudiendekan extends JFrame {
         p3Inner.setLayout(new BoxLayout(p3Inner, BoxLayout.Y_AXIS));
         p3Inner.add(Box.createVerticalGlue());
 
-        JButton btnGenehmigen = new JButton("Genehmigung erteilen");
-        btnGenehmigen.setBackground(hftBlue);
-        btnGenehmigen.setForeground(Color.WHITE);
-        btnGenehmigen.setOpaque(true);
-        btnGenehmigen.setFocusPainted(false);
-        btnGenehmigen.setBorderPainted(false);
-        btnGenehmigen.setMaximumSize(new Dimension(300, 60));
-        btnGenehmigen.setPreferredSize(new Dimension(300, 60));
-        btnGenehmigen.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JButton btnAntragsverwaltung = new JButton("Anträge genehmigen");
+        btnAntragsverwaltung.setBackground(hftBlue);
+        btnAntragsverwaltung.setForeground(Color.WHITE);
+        btnAntragsverwaltung.setOpaque(true);
+        btnAntragsverwaltung.setFocusPainted(false);
+        btnAntragsverwaltung.setBorderPainted(false);
+        btnAntragsverwaltung.setMaximumSize(new Dimension(300, 60));
+        btnAntragsverwaltung.setPreferredSize(new Dimension(300, 60));
+        btnAntragsverwaltung.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        btnGenehmigen.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow == -1) {
-                JOptionPane.showMessageDialog(DashboardStudiendekan.this,
-                        "Bitte zuerst einen Studenten in der Tabelle auswählen!");
-                return;
-            }
-            int mnr = (int) table.getValueAt(selectedRow, 0);
-            StudentInfo student = null;
-            try {
-                student = StudentDAO.getStudentInfo(mnr);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(DashboardStudiendekan.this, "Fehler beim Laden der Studentendaten!");
-                return;
-            }
-            if (student == null) {
-                JOptionPane.showMessageDialog(DashboardStudiendekan.this, "Student konnte nicht gefunden werden!");
-                return;
-            }
-            GenehmigungDerBachelorarbeitStudiendekan genehmigung = new GenehmigungDerBachelorarbeitStudiendekan(
-                    DashboardStudiendekan.this, student);
-            genehmigung.setVisible(true);
-            DashboardStudiendekan.this.setVisible(false);
+        btnAntragsverwaltung.addActionListener(e -> {
+            new AntragsverwaltungStudiendekan();
         });
-        p3Inner.add(btnGenehmigen);
+
+        p3Inner.add(btnAntragsverwaltung);
         p3Inner.add(Box.createVerticalStrut(30));
 
         JButton btnNoteneingabe = new JButton("Noteneingabe");
@@ -276,6 +255,23 @@ public class DashboardStudiendekan extends JFrame {
             DashboardStudiendekan.this.setVisible(false);
         });
         p3Inner.add(btnNoteneingabe);
+        p3Inner.add(Box.createVerticalStrut(30));
+
+        JButton btnNotenfreigabe = new JButton("Noten freigeben");
+        btnNotenfreigabe.setBackground(new Color(255, 165, 0)); // Orange
+        btnNotenfreigabe.setForeground(Color.WHITE);
+        btnNotenfreigabe.setOpaque(true);
+        btnNotenfreigabe.setFocusPainted(false);
+        btnNotenfreigabe.setBorderPainted(false);
+        btnNotenfreigabe.setMaximumSize(new Dimension(300, 60));
+        btnNotenfreigabe.setPreferredSize(new Dimension(300, 60));
+        btnNotenfreigabe.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        btnNotenfreigabe.addActionListener(e -> {
+            new NotenfreigabeDialog();
+        });
+
+        p3Inner.add(btnNotenfreigabe);
         p3Inner.add(Box.createVerticalGlue());
         pFunk.add(p3Inner, BorderLayout.CENTER);
 

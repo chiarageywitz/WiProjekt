@@ -135,7 +135,7 @@ public class FreigabeDerBachelorarbeit extends JFrame {
                         "Bachelorarbeit wurde vom Betreuer freigegeben.");
 
                 // ===== Studiendekan =====
-                insertNotification(conn, 0,
+                insertNotification(conn, null,
                         "Genehmigung der Bachelorarbeit von " + s.name + " erforderlich.");
 
                 JOptionPane.showMessageDialog(this,

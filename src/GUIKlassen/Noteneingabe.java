@@ -95,12 +95,6 @@ public class Noteneingabe extends JFrame {
         noteBetreuerField.setBounds(20, y + 25, 200, 30);
         main.add(noteBetreuerField);
 
-        JButton speichernBetreuerBtn = new JButton("Note speichern");
-        speichernBetreuerBtn.setBounds(240, y + 25, 160, 30);
-        styleButton(speichernBetreuerBtn);
-        speichernBetreuerBtn.addActionListener(e -> speichereEinzelNote("note_betreuer", noteBetreuerField));
-        main.add(speichernBetreuerBtn);
-
         y += 70;
 
         // Note Dekan
@@ -111,12 +105,6 @@ public class Noteneingabe extends JFrame {
         noteDekanField = createNoteField();
         noteDekanField.setBounds(20, y + 25, 200, 30);
         main.add(noteDekanField);
-
-        JButton speichernDekanBtn = new JButton("Note speichern");
-        speichernDekanBtn.setBounds(240, y + 25, 160, 30);
-        styleButton(speichernDekanBtn);
-        speichernDekanBtn.addActionListener(e -> speichereEinzelNote("note_studiendekan", noteDekanField));
-        main.add(speichernDekanBtn);
 
         y += 70;
 
@@ -153,9 +141,6 @@ public class Noteneingabe extends JFrame {
 
         // Setze Editierbarkeit
         setEditierbarkeit();
-
-        // Automatisches Speichern beim Fokusverlust
-        addAutoSave();
 
         // Berechne Endnote, falls beide vorhanden
         berechneEndnote();
@@ -213,98 +198,111 @@ public class Noteneingabe extends JFrame {
     }
 
     /**
-     * Fügt automatisches Speichern beim Verlassen der Notenfelder hinzu.
-     */
-    private void addAutoSave() {
-        noteBetreuerField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (rolle.equals("betreuer")) {
-                    speichereEinzelNote("note_betreuer", noteBetreuerField);
-                }
-            }
-        });
-
-        noteDekanField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (rolle.equals("studiendekan")) {
-                    speichereEinzelNote("note_studiendekan", noteDekanField);
-                }
-            }
-        });
-    }
-
-    /**
-     * Speichert eine einzelne Note in der Datenbank und berechnet die Endnote neu.
-     * Zeigt eine Meldung, wenn die Note erfolgreich gespeichert wurde.
-     *
-     * @param spalte Name der Datenbankspalte ("note_betreuer" oder "note_studiendekan")
-     * @param feld   JTextField mit der Note
-     */
-    private void speichereEinzelNote(String spalte, JTextField feld) {
-        Double note = parse(feld.getText());
-        if (note == null) {
-            JOptionPane.showMessageDialog(this, "Bitte eine gültige Note eingeben!");
-            return;
-        }
-
-        try (Connection conn = DBConnection.getConnection()) {
-            // Note in der Datenbank speichern
-            PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO noten (mnr, " + spalte + ") VALUES (?, ?) " +
-                            "ON DUPLICATE KEY UPDATE " + spalte + " = ?"
-            );
-            ps.setInt(1, mnr);
-            ps.setDouble(2, note);
-            ps.setDouble(3, note);
-            int updated = ps.executeUpdate();
-
-            // Endnote berechnen, wenn beide Noten vorhanden sind
-            berechneEndnote();
-
-            // Bestätigung anzeigen
-            JOptionPane.showMessageDialog(this, "Note erfolgreich gespeichert!");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Note: " + ex.getMessage());
-        }
-    }
-
-
-    /**
-     * Berechnet die Endnote, sofern beide Einzelnoten vorhanden sind.
-     */
-    /**
-     * Berechnet die Endnote, sofern beide Einzelnoten vorhanden sind.
+     * Berechnet die Endnote aus der Datenbank, sofern beide Einzelnoten vorhanden sind.
      * Blinkt das Endnotenfeld grün und setzt Tooltip, wenn die Berechnung erfolgreich war.
      */
     private void berechneEndnote() {
-        Double betreuer = parse(noteBetreuerField.getText());
-        Double dekan = parse(noteDekanField.getText());
-
-        if (betreuer != null && dekan != null) {
-            double endnote = (3 * dekan + 12 * betreuer) / 15;
-            endnoteField.setText(String.format("%.2f", endnote).replace(".", ","));
+        try (Connection conn = DBConnection.getConnection()) {
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT note_betreuer, note_studiendekan FROM noten WHERE mnr = ?"
+            );
+            ps.setInt(1, mnr);
+            ResultSet rs = ps.executeQuery();
             
-            // Tooltip setzen
-            endnoteField.setToolTipText("Endnote aktualisiert");
-            
-            // Hintergrund kurz grün aufblinken lassen
-            Color original = endnoteField.getBackground();
-            endnoteField.setBackground(Color.GREEN);
-            new javax.swing.Timer(1000, e -> endnoteField.setBackground(original)).start();
+            if (rs.next()) {
+                Double betreuer = rs.getObject("note_betreuer", Double.class);
+                Double dekan = rs.getObject("note_studiendekan", Double.class);
+                
+                System.out.println("DEBUG berechneEndnote aus DB: Betreuer=" + betreuer + ", Dekan=" + dekan);
+                
+                if (betreuer != null && dekan != null) {
+                    // Endnote berechnen: 80% Betreuer + 20% Dekan
+                    double endnote = 0.8 * betreuer + 0.2 * dekan;
+                    endnoteField.setText(String.format("%.2f", endnote).replace(".", ","));
+                    
+                    System.out.println("DEBUG: Berechne Endnote = " + endnote + " für MNR " + mnr);
+                    
+                    // Endnote in Datenbank speichern
+                    PreparedStatement psUpdate = conn.prepareStatement(
+                        "UPDATE noten SET endnote = ? WHERE mnr = ?"
+                    );
+                    psUpdate.setDouble(1, endnote);
+                    psUpdate.setInt(2, mnr);
+                    int rows = psUpdate.executeUpdate();
+                    System.out.println("DEBUG: Endnote gespeichert, rows affected: " + rows);
+                    
+                    // Tooltip setzen
+                    endnoteField.setToolTipText("Endnote aktualisiert");
+                    
+                    // Hintergrund kurz grün aufblinken lassen
+                    Color original = endnoteField.getBackground();
+                    endnoteField.setBackground(Color.GREEN);
+                    new javax.swing.Timer(1000, e -> endnoteField.setBackground(original)).start();
+                }
+            }
+        } catch (Exception ex) {
+            System.err.println("FEHLER beim Berechnen/Speichern der Endnote:");
+            ex.printStackTrace();
         }
     }
 
 
     /**
-     * Speichert alle Notenfelder (Betreuer und Dekan) manuell.
+     * Speichert die Note des aktuellen Benutzers (Betreuer oder Dekan).
      */
     private void speichernAlles() {
-        speichereEinzelNote("note_betreuer", noteBetreuerField);
-        speichereEinzelNote("note_studiendekan", noteDekanField);
-        JOptionPane.showMessageDialog(this, "Alle Noten erfolgreich gespeichert!");
+        try (Connection conn = DBConnection.getConnection()) {
+            if (rolle.equals("betreuer")) {
+                // Betreuer speichert nur seine Note
+                Double noteBetreuer = parse(noteBetreuerField.getText());
+                
+                if (noteBetreuer == null) {
+                    JOptionPane.showMessageDialog(this, "Bitte geben Sie Ihre Note ein!");
+                    return;
+                }
+                
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO noten (mnr, note_betreuer) VALUES (?, ?) " +
+                        "ON DUPLICATE KEY UPDATE note_betreuer = ?"
+                );
+                ps.setInt(1, mnr);
+                ps.setDouble(2, noteBetreuer);
+                ps.setDouble(3, noteBetreuer);
+                ps.executeUpdate();
+                
+                JOptionPane.showMessageDialog(this, "Betreuer-Note erfolgreich gespeichert!");
+                
+            } else if (rolle.equals("studiendekan")) {
+                // Dekan speichert nur seine Note
+                Double noteDekan = parse(noteDekanField.getText());
+                
+                if (noteDekan == null) {
+                    JOptionPane.showMessageDialog(this, "Bitte geben Sie Ihre Note ein!");
+                    return;
+                }
+                
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO noten (mnr, note_studiendekan) VALUES (?, ?) " +
+                        "ON DUPLICATE KEY UPDATE note_studiendekan = ?"
+                );
+                ps.setInt(1, mnr);
+                ps.setDouble(2, noteDekan);
+                ps.setDouble(3, noteDekan);
+                ps.executeUpdate();
+                
+                JOptionPane.showMessageDialog(this, "Dekan-Note erfolgreich gespeichert!");
+            }
+
+            // Noten neu laden (zeigt ggf. die Note des anderen Prüfers an)
+            ladeNoten();
+            
+            // Endnote berechnen (falls beide Noten jetzt vorhanden sind)
+            berechneEndnote();
+            
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Fehler beim Speichern: " + ex.getMessage());
+        }
     }
 
     /**

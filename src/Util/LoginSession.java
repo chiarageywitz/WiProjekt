@@ -20,6 +20,11 @@ public class LoginSession {
         return currentMnr;
     }
     
+    // Alias für getCurrentMnr() - wird von manchen Klassen erwartet
+    public static int getLoggedInMnr() {
+        return currentMnr;
+    }
+    
     public static String getCurrentRole() {
         return currentRole;
     }

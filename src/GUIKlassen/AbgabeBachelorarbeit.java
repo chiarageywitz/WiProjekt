@@ -3,6 +3,11 @@ package GUIKlassen;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import Datenbank.VersionDAO;
+import Datenbank.DBConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 /**
  * Panel für den Upload der Bachelorarbeit. Enthält Upload-Feld, Beschreibung,
@@ -11,11 +16,14 @@ import java.io.File;
 public class AbgabeBachelorarbeit extends JPanel {
 
 	private static final long serialVersionUID = 1L;
+	private int mnr;
+	private File selectedFile;
 
 	/**
 	 * Konstruktor für das Upload-Panel.
 	 */
-	public AbgabeBachelorarbeit() {
+	public AbgabeBachelorarbeit(int mnr) {
+		this.mnr = mnr;
 
 		setLayout(null);
 		setBackground(Color.WHITE);
@@ -64,12 +72,14 @@ public class AbgabeBachelorarbeit extends JPanel {
 		chooseBtn.addActionListener(e -> {
 			JFileChooser chooser = new JFileChooser();
 			chooser.setDialogTitle("Datei auswählen");
+			chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+				"Unterstützte Dateien (PDF, DOCX)", "pdf", "docx"));
 
 			int result = chooser.showOpenDialog(this);
 
 			if (result == JFileChooser.APPROVE_OPTION) {
-				File file = chooser.getSelectedFile();
-				uploadLabel.setText("<html><center><b>" + file.getName() + "</b></center></html>");
+				selectedFile = chooser.getSelectedFile();
+				uploadLabel.setText("<html><center><b>" + selectedFile.getName() + "</b></center></html>");
 			}
 		});
 
@@ -103,12 +113,49 @@ public class AbgabeBachelorarbeit extends JPanel {
 		add(uploadBtn);
 
 		uploadBtn.addActionListener(e -> {
-			JOptionPane.showMessageDialog(this,
-					"<html><center>Ihre Bachelorarbeit wurde<br>erfolgreich hochgeladen!</center></html>",
-					"Upload erfolgreich", JOptionPane.INFORMATION_MESSAGE);
+			if (selectedFile == null) {
+				JOptionPane.showMessageDialog(this,
+					"Bitte wählen Sie zuerst eine Datei aus!",
+					"Keine Datei", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
 
-			new DashboardStudent(4711); // Zurück zum Dashboard
-			SwingUtilities.getWindowAncestor(this).dispose(); // Upload-Fenster schließen
+			try {
+				// Betreuer-MNR holen
+				Connection conn = DBConnection.getConnection();
+				PreparedStatement ps = conn.prepareStatement(
+					"SELECT betreuer_mnr FROM antraege WHERE student_mnr = ? AND status = 'dekan_genehmigt' LIMIT 1"
+				);
+				ps.setInt(1, mnr);
+				ResultSet rs = ps.executeQuery();
+
+				if (rs.next()) {
+					int betreuerMnr = rs.getInt("betreuer_mnr");
+					String kommentar = beschreibung.getText();
+
+					// Finale Abgabe speichern
+					VersionDAO.finaleAbgabe(mnr, betreuerMnr, selectedFile.getAbsolutePath(), kommentar);
+
+					JOptionPane.showMessageDialog(this,
+						"<html><center>Ihre Bachelorarbeit wurde erfolgreich abgegeben!<br>" +
+						"Ihr Betreuer und Sie wurden benachrichtigt.<br>" +
+						"Sie erhalten nach der Notenvergabe eine Benachrichtigung.</center></html>",
+						"Abgabe erfolgreich", JOptionPane.INFORMATION_MESSAGE);
+
+					new DashboardStudent(mnr);
+					SwingUtilities.getWindowAncestor(this).dispose();
+				} else {
+					JOptionPane.showMessageDialog(this,
+						"Kein Betreuer gefunden. Bitte kontaktieren Sie das Prüfungsamt.",
+						"Fehler", JOptionPane.ERROR_MESSAGE);
+				}
+				conn.close();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(this,
+					"Fehler beim Hochladen: " + ex.getMessage(),
+					"Fehler", JOptionPane.ERROR_MESSAGE);
+			}
 		});
 
 		// =========================
@@ -124,7 +171,7 @@ public class AbgabeBachelorarbeit extends JPanel {
 		add(backBtn);
 
 		backBtn.addActionListener(e -> {
-			new DashboardStudent(4711); // Dashboard öffnen
+			new DashboardStudent(mnr); // Dashboard öffnen
 			SwingUtilities.getWindowAncestor(this).dispose(); // Fenster schließen
 		});
 	}
@@ -137,7 +184,7 @@ public class AbgabeBachelorarbeit extends JPanel {
 		JFrame frame = new JFrame("Bachelorarbeit Upload");
 		frame.setSize(560, 600);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.add(new AbgabeBachelorarbeit());
+		frame.add(new AbgabeBachelorarbeit(4711));
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}

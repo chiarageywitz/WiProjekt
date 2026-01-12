@@ -4,6 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 import Datenbank.DBConnection;
+import Datenbank.AntragDAO;
+import Datenbank.VersionDAO;
+import Util.LoginSession;
 
 /**
  * Dashboard für Studenten. Zeigt die Funktionen für Studierende an, z.B.
@@ -69,6 +72,13 @@ public class DashboardStudent extends JFrame {
 		btnAbgabe.setBounds(50, 270, 280, 75);
 		leftPanel.add(btnAbgabe);
 
+		JButton btnZwischenversionen = createBlueButton(
+				"Zwischenversionen & Feedback",
+				"Dateien hochladen und Feedback erhalten"
+		);
+		btnZwischenversionen.setBounds(50, 360, 280, 75);
+		leftPanel.add(btnZwischenversionen);
+
 		JPanel rightPanel = new JPanel(null);
 		rightPanel.setBounds(480, 100, 500, 450);
 		rightPanel.setBackground(Color.WHITE);
@@ -99,7 +109,22 @@ public class DashboardStudent extends JFrame {
 		});
 
 		// Anmeldung zur Bachelorarbeit
-		btnAnmeldung.addActionListener(e -> new AnmeldungZurBachelorarbeitStudent());
+		btnAnmeldung.addActionListener(e -> {
+			try {
+				if (AntragDAO.hatGenehmigtenAntrag(mnr)) {
+					new AnmeldungZurBachelorarbeitStudent(mnr);
+				} else {
+					JOptionPane.showMessageDialog(this,
+						"Sie können sich erst anmelden, nachdem Ihr Antrag vom Betreuer und Studiendekan genehmigt wurde.",
+						"Keine Genehmigung", JOptionPane.WARNING_MESSAGE);
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(this,
+					"Fehler beim Prüfen des Antragsstatus: " + ex.getMessage(),
+					"Fehler", JOptionPane.ERROR_MESSAGE);
+			}
+		});
 
 		// Abgabe Bachelorarbeit
 		btnAbgabe.addActionListener(e -> {
@@ -107,8 +132,35 @@ public class DashboardStudent extends JFrame {
 			frame.setSize(560, 600);
 			frame.setLocationRelativeTo(null);
 			frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-			frame.add(new AbgabeBachelorarbeit());
+			frame.add(new AbgabeBachelorarbeit(mnr));
 			frame.setVisible(true);
+		});
+
+		// Zwischenversionen & Feedback
+		btnZwischenversionen.addActionListener(e -> {
+			try {
+				// Betreuer-MNR aus Datenbank holen
+				Connection conn = DBConnection.getConnection();
+				PreparedStatement ps = conn.prepareStatement(
+					"SELECT betreuer_mnr FROM antraege WHERE student_mnr = ? AND status = 'dekan_genehmigt' LIMIT 1"
+				);
+				ps.setInt(1, mnr);
+				ResultSet rs = ps.executeQuery();
+				if (rs.next()) {
+					int betreuerMnr = rs.getInt("betreuer_mnr");
+					new ZwischenversionenVerwaltung(mnr, betreuerMnr, "student");
+				} else {
+					JOptionPane.showMessageDialog(this,
+						"Sie haben noch keinen genehmigten Antrag. Bitte reichen Sie zunächst einen Antrag ein.",
+						"Kein Betreuer zugewiesen", JOptionPane.WARNING_MESSAGE);
+				}
+				conn.close();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(this,
+					"Fehler: " + ex.getMessage(),
+					"Fehler", JOptionPane.ERROR_MESSAGE);
+			}
 		});
 
 		logoutBtn.addActionListener(e -> {

@@ -240,29 +240,24 @@ public class GenehmigungDerBachelorarbeitStudiendekan extends JFrame {
 
 			//  BENACHRICHTIGUNG FÜR STUDENT
 			PreparedStatement notif = conn.prepareStatement(
-				    "INSERT INTO benachrichtigung " +
-				    "(empfaenger_mnr, empfaenger_rolle, titel, text, gelesen) " +
-				    "VALUES (?, ?, ?, ?, 0)"
+				    "INSERT INTO benachrichtigungen " +
+				    "(mnr, text, datum, gelesen) " +
+				    "VALUES (?, ?, CURDATE(), 0)"
 				);
 
-				String titel;
 				String text;
 
 				if (approve.isSelected()) {
-				    titel = "Bachelorarbeit genehmigt";
-				    text = "Ihre Bachelorarbeit wurde genehmigt.";
+				    text = "Ihre Bachelorarbeit wurde vom Studiendekan genehmigt.";
 				} else {
-				    titel = "Bachelorarbeit abgelehnt";
-				    text = "Ihre Bachelorarbeit wurde abgelehnt.";
+				    text = "Ihre Bachelorarbeit wurde vom Studiendekan abgelehnt.";
 				    if (!begrField.getText().trim().isEmpty()) {
-				        text += "\nBegründung: " + begrField.getText().trim();
+				        text += " Begründung: " + begrField.getText().trim();
 				    }
 				}
 
 				notif.setInt(1, student.mnr);
-				notif.setString(2, "STUDENT");
-				notif.setString(3, titel);
-				notif.setString(4, text);
+				notif.setString(2, text);
 				notif.executeUpdate();
 
 

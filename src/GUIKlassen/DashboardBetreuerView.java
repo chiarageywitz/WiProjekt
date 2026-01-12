@@ -2,9 +2,14 @@ package GUIKlassen;
 
 import Datenbank.StudentDAO.StudentInfo;
 import Util.UIColors;
+import Util.LoginSession;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import Datenbank.DBConnection;
 
 /**
  * Dashboard für Betreuer, zeigt Übersicht eines einzelnen Studenten. Enthält
@@ -85,28 +90,75 @@ public class DashboardBetreuerView extends JFrame {
 		JPanel funktionenBox = createBoxPanel("Meine Funktionen", hftRed);
 
 		JButton noteneingabeBtn = createBlueButton("Noteneingabe", hftBlue);
-		JButton freigabeBtn = createBlueButton("Freigabe der Bachelorarbeit", hftBlue);
-		freigabeBtn.addActionListener(e -> {
-		    setVisible(false);
-		    new FreigabeDerBachelorarbeit(this).setVisible(true);
-		});
-
+		JButton antraegeBtn = createBlueButton("Anträge verwalten", hftBlue);
+		JButton zwischenversionenBtn = createBlueButton("Zwischenversionen & Feedback", hftBlue);
 
 		noteneingabeBtn.addActionListener(e -> {
-			setVisible(false); // 🔹 Dashboard ausblenden
+			setVisible(false);
 			new Noteneingabe(student, "betreuer", this);
+		});
+
+		antraegeBtn.addActionListener(e -> {
+			try {
+				int betreuerMnr = LoginSession.getLoggedInMnr();
+				new AntragsverwaltungBetreuer(betreuerMnr);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(this, "Fehler: " + ex.getMessage());
+			}
+		});
+
+		zwischenversionenBtn.addActionListener(e -> {
+			try {
+				int betreuerMnr = LoginSession.getLoggedInMnr();
+				new ZwischenversionenVerwaltung(student.mnr, betreuerMnr, "betreuer");
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(this, "Fehler: " + ex.getMessage());
+			}
 		});
 
 		funktionenBox.add(Box.createVerticalGlue());
 		funktionenBox.add(noteneingabeBtn);
-		funktionenBox.add(Box.createVerticalStrut(20));
-		funktionenBox.add(freigabeBtn);
+		funktionenBox.add(Box.createVerticalStrut(15));
+		funktionenBox.add(antraegeBtn);
+		funktionenBox.add(Box.createVerticalStrut(15));
+		funktionenBox.add(zwischenversionenBtn);
 		funktionenBox.add(Box.createVerticalGlue());
 
 		// ===== Portal =====
 		JPanel portalBox = createBoxPanel("Portal-Benachrichtigungen", hftRed);
 		JTextArea portalArea = new JTextArea();
 		portalArea.setEditable(false);
+		portalArea.setLineWrap(true);
+		portalArea.setWrapStyleWord(true);
+		
+		// Benachrichtigungen laden
+		try {
+			int betreuerMnr = LoginSession.getLoggedInMnr();
+			Connection conn = DBConnection.getConnection();
+			PreparedStatement ps = conn.prepareStatement(
+				"SELECT text, datum FROM benachrichtigungen " +
+				"WHERE mnr = ? ORDER BY datum DESC LIMIT 10"
+			);
+			ps.setInt(1, betreuerMnr);
+			ResultSet rs = ps.executeQuery();
+			
+			StringBuilder sb = new StringBuilder();
+			while (rs.next()) {
+				sb.append("• ")
+				  .append(rs.getDate("datum"))
+				  .append(": ")
+				  .append(rs.getString("text"))
+				  .append("\n\n");
+			}
+			portalArea.setText(sb.toString());
+			conn.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			portalArea.setText("Fehler beim Laden der Benachrichtigungen");
+		}
+		
 		portalBox.add(new JScrollPane(portalArea));
 
 		mainPanel.add(funktionenBox);

@@ -76,7 +76,7 @@ public class NotenlisteStudiendekan extends JFrame {
 
         y += 90;
 
-        String[] columnNames = { "Matrikelnummer", "Name, Vorname", "Semester", "Prüfungsname", "Note", "Bestanden" };
+        String[] columnNames = { "Matrikelnummer", "Name, Vorname", "Note Betreuer", "Note Dekan", "Endnote", "Bestanden" };
 
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -176,11 +176,11 @@ public class NotenlisteStudiendekan extends JFrame {
         model.setRowCount(0);
 
         try (Connection conn = DBConnection.getConnection()) {
-            String sql = "SELECT s.MNR, s.Nachname, s.Vorname, n.semester, n.pruefungsname, " +
+            String sql = "SELECT s.MNR, s.Nachname, s.Vorname, " +
                          "n.note_betreuer, n.note_studiendekan, n.endnote " +
                          "FROM studentendb s " +
                          "LEFT JOIN noten n ON s.MNR = n.mnr " +
-                         "WHERE s.rolle = 'Student'";
+                         "WHERE s.rolle = 'student'";
 
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -190,26 +190,20 @@ public class NotenlisteStudiendekan extends JFrame {
                 String name = rs.getString("Nachname") + ", " + rs.getString("Vorname");
                 Double noteBetreuer = rs.getObject("note_betreuer", Double.class);
                 Double noteDekan = rs.getObject("note_studiendekan", Double.class);
-                Double endnote = null;
+                Double endnote = rs.getObject("endnote", Double.class);
 
-                // Endnote nur berechnen/anzeigen, wenn beide Noten vorhanden sind
-                if (noteBetreuer != null && noteDekan != null) {
-                    endnote = rs.getObject("endnote", Double.class);
-                    if (endnote != null) {
-                        endnote = Math.round(endnote * 10.0) / 10.0; // auf 1 Nachkommastelle runden
-                    }
+                // Endnote runden auf 1 Nachkommastelle
+                if (endnote != null) {
+                    endnote = Math.round(endnote * 10.0) / 10.0;
                 }
 
                 boolean bestanden = endnote != null && endnote <= 4.0;
 
-                String semester = rs.getString("semester");
-                String pruefungsname = rs.getString("pruefungsname");
-
                 model.addRow(new Object[]{
                         mnr,
                         name,
-                        semester != null ? semester : "",
-                        pruefungsname != null ? pruefungsname : "",
+                        noteBetreuer != null ? noteBetreuer.toString().replace(".", ",") : "",
+                        noteDekan != null ? noteDekan.toString().replace(".", ",") : "",
                         endnote != null ? endnote.toString().replace(".", ",") : "",
                         bestanden
                 });

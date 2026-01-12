@@ -3,6 +3,11 @@ package GUIKlassen;
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.text.MaskFormatter;
+import Datenbank.DBConnection;
+import Datenbank.BenachrichtigungDAO;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 /**
  * GUI für die Anmeldung zur Bachelorarbeit durch den Studenten. Enthält
@@ -11,11 +16,13 @@ import javax.swing.text.MaskFormatter;
  */
 public class AnmeldungZurBachelorarbeitStudent extends JFrame {
 
+	private int mnr;
 	
 	/**
 	 * Konstruktor für die Anmeldung der Bachelorarbeit.
 	 */
-	public AnmeldungZurBachelorarbeitStudent() {
+	public AnmeldungZurBachelorarbeitStudent(int mnr) {
+		this.mnr = mnr;
 
 		setTitle("Anmeldung der Bachelorarbeit");
 		setSize(750, 850);
@@ -165,17 +172,97 @@ public class AnmeldungZurBachelorarbeitStudent extends JFrame {
 
 		// ---------- BUTTON ACTIONS ----------
 		zurueckBtn.addActionListener(e -> {
-			new DashboardStudent(4711);
+			new DashboardStudent(mnr);
 			dispose();
 		});
 
+		final JFormattedTextField finalDatumFeld = datumFeld;
 		absendenBtn.addActionListener(e -> {
-			JOptionPane.showMessageDialog(this,
-					"<html><center>Ihre Anmeldung zur Bachelorarbeit wurde<br>erfolgreich übermittelt!</center></html>",
-					"Erfolg", JOptionPane.INFORMATION_MESSAGE);
+			// Validierung
+			if (!akzeptiert.isSelected()) {
+				JOptionPane.showMessageDialog(this,
+					"Bitte akzeptieren Sie die Bedingungen.",
+					"Bedingungen nicht akzeptiert", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
 
-			new DashboardStudent(4711);
-			dispose();
+			if (!jaBtn.isSelected() && !neinBtn.isSelected()) {
+				JOptionPane.showMessageDialog(this,
+					"Bitte beantworten Sie die Frage zur Veröffentlichung.",
+					"Frage nicht beantwortet", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+
+			String datum = finalDatumFeld.getText();
+			if (datum == null || datum.contains("_")) {
+				JOptionPane.showMessageDialog(this,
+					"Bitte geben Sie ein gültiges Datum ein.",
+					"Ungültiges Datum", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+
+			try {
+				// Anmeldung in DB speichern
+				Connection conn = DBConnection.getConnection();
+				
+				// Betreuer-MNR holen
+				PreparedStatement ps = conn.prepareStatement(
+					"SELECT betreuer_mnr FROM antraege WHERE student_mnr = ? AND status = 'dekan_genehmigt' LIMIT 1"
+				);
+				ps.setInt(1, mnr);
+				ResultSet rs = ps.executeQuery();
+
+				if (rs.next()) {
+					int betreuerMnr = rs.getInt("betreuer_mnr");
+					
+					// Anmeldung speichern
+					PreparedStatement psAnmeldung = conn.prepareStatement(
+						"INSERT INTO anmeldungen (student_mnr, betreuer_mnr, datum, veroeffentlichung_erlaubt) " +
+						"VALUES (?, ?, STR_TO_DATE(?, '%d.%m.%Y'), ?)"
+					);
+					psAnmeldung.setInt(1, mnr);
+					psAnmeldung.setInt(2, betreuerMnr);
+					psAnmeldung.setString(3, datum);
+					psAnmeldung.setBoolean(4, jaBtn.isSelected());
+					psAnmeldung.executeUpdate();
+
+					// Benachrichtigungen erstellen
+					BenachrichtigungDAO.erstellen(
+						betreuerMnr,
+						"Student (MNR: " + mnr + ") hat sich für die Bachelorarbeit angemeldet.",
+						"betreuer",
+						mnr,
+						betreuerMnr
+					);
+
+					BenachrichtigungDAO.erstellen(
+						mnr,
+						"Ihre Anmeldung zur Bachelorarbeit wurde erfolgreich übermittelt.",
+						"student",
+						null,
+						mnr
+					);
+
+					conn.close();
+
+					JOptionPane.showMessageDialog(this,
+						"<html><center>Ihre Anmeldung zur Bachelorarbeit wurde<br>erfolgreich übermittelt!<br>" +
+						"Ihr Betreuer wurde benachrichtigt.</center></html>",
+						"Erfolg", JOptionPane.INFORMATION_MESSAGE);
+
+					new DashboardStudent(mnr);
+					dispose();
+				} else {
+					JOptionPane.showMessageDialog(this,
+						"Kein Betreuer gefunden. Bitte kontaktieren Sie das Prüfungsamt.",
+						"Fehler", JOptionPane.ERROR_MESSAGE);
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(this,
+					"Fehler beim Speichern: " + ex.getMessage(),
+					"Fehler", JOptionPane.ERROR_MESSAGE);
+			}
 		});
 
 		setVisible(true);
@@ -187,6 +274,6 @@ public class AnmeldungZurBachelorarbeitStudent extends JFrame {
      * @param args Kommandozeilenargumente
      */
 	public static void main(String[] args) {
-		new AnmeldungZurBachelorarbeitStudent();
+		new AnmeldungZurBachelorarbeitStudent(4711);
 	}
 }
