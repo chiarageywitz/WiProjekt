@@ -9,14 +9,19 @@ import java.awt.*;
 import java.util.List;
 
 /**
- * Ansicht für Studiendekan zur Genehmigung von Anträgen.
- * Nach Genehmigung können Studenten sich anmelden.
+ * Ansicht für den Studiendekan zur Genehmigung von Anträgen.
+ * Nach der Genehmigung durch den Studiendekan können sich Studenten
+ * offiziell für die Bachelorarbeit anmelden.
  */
 public class AntragsverwaltungStudiendekan extends JFrame {
 
     private DefaultTableModel tableModel;
     private JTable table;
 
+    /**
+     * Konstruktor für die Antragsverwaltung des Studiendekans.
+     * Initialisiert GUI-Elemente, Tabelle und Buttons.
+     */
     public AntragsverwaltungStudiendekan() {
         setTitle("Antragsverwaltung - Studiendekan");
         setSize(1100, 650);
@@ -34,7 +39,7 @@ public class AntragsverwaltungStudiendekan extends JFrame {
         header.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         add(header, BorderLayout.NORTH);
 
-        // Tabelle
+        // Tabelle erstellen
         String[] columns = {"Antrag-ID", "Student", "Thema", "Unternehmen", "Betreuer", "Datum"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -89,7 +94,7 @@ public class AntragsverwaltungStudiendekan extends JFrame {
         buttonPanel.add(btnSchliessen);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // Actions
+        // Button Aktionen
         btnGenehmigen.addActionListener(e -> antragGenehmigen());
         btnAblehnen.addActionListener(e -> antragAblehnen());
         btnDetails.addActionListener(e -> detailsAnzeigen());
@@ -100,6 +105,10 @@ public class AntragsverwaltungStudiendekan extends JFrame {
         setVisible(true);
     }
 
+    /**
+     * Lädt alle vom Betreuer genehmigten Anträge aus der Datenbank
+     * und zeigt sie in der Tabelle an.
+     */
     private void ladeAntraege() {
         tableModel.setRowCount(0);
         try {
@@ -122,6 +131,10 @@ public class AntragsverwaltungStudiendekan extends JFrame {
         }
     }
 
+    /**
+     * Genehmigt den ausgewählten Antrag und benachrichtigt den Studenten,
+     * dass er sich für die Bachelorarbeit anmelden kann.
+     */
     private void antragGenehmigen() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
@@ -158,6 +171,9 @@ public class AntragsverwaltungStudiendekan extends JFrame {
         }
     }
 
+    /**
+     * Lehnt den ausgewählten Antrag ab und informiert Student und Betreuer.
+     */
     private void antragAblehnen() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
@@ -191,6 +207,9 @@ public class AntragsverwaltungStudiendekan extends JFrame {
         }
     }
 
+    /**
+     * Zeigt die Details des ausgewählten Antrags in einem Dialogfenster an.
+     */
     private void detailsAnzeigen() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
