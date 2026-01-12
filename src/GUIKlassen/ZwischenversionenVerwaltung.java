@@ -3,7 +3,6 @@ package GUIKlassen;
 import Datenbank.VersionDAO;
 import Datenbank.VersionDAO.Version;
 import Datenbank.VersionDAO.Feedback;
-import Util.LoginSession;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -12,86 +11,78 @@ import java.io.File;
 import java.util.List;
 
 /**
- * GUI für Zwischenversionen-Upload und Feedback-Verwaltung.
- * Student und Betreuer können Dateien hochladen und Feedback geben.
+ * GUI zur Verwaltung von Zwischenversionen und zugehörigem Feedback.
+ *
+ * Abhängig von der Rolle können Studenten und Betreuer Dateien hochladen,
+ * Feedback erfassen und vorhandene Rückmeldungen einsehen.
  */
 public class ZwischenversionenVerwaltung extends JFrame {
 
+    /** Matrikelnummer des Studenten */
     private int studentMnr;
+
+    /** Matrikelnummer des Betreuers */
     private int betreuerMnr;
-    private String rolle; // "student" oder "betreuer"
+
+    /** Rolle des angemeldeten Nutzers */
+    private String rolle;
+
+    /** Tabellenmodell für die Anzeige der Zwischenversionen */
     private DefaultTableModel tableModel;
+
+    /** Tabelle zur Darstellung der Versionen */
     private JTable table;
 
+    /**
+     * Erstellt die GUI zur Verwaltung von Zwischenversionen.
+     *
+     * @param studentMnr Matrikelnummer des Studenten
+     * @param betreuerMnr Matrikelnummer des Betreuers
+     * @param rolle Rolle des Nutzers
+     */
     public ZwischenversionenVerwaltung(int studentMnr, int betreuerMnr, String rolle) {
         this.studentMnr = studentMnr;
         this.betreuerMnr = betreuerMnr;
         this.rolle = rolle;
 
-        setTitle("Zwischenversionen & Feedback - " + (rolle.equals("student") ? "Student" : "Betreuer"));
+        setTitle("Zwischenversionen & Feedback");
         setSize(1200, 700);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Header
         JLabel header = new JLabel("Zwischenversionen und Feedback");
-        header.setFont(new Font("Arial", Font.BOLD, 22));
-        header.setHorizontalAlignment(SwingConstants.CENTER);
-        header.setOpaque(true);
-        header.setBackground(new Color(0, 45, 150));
-        header.setForeground(Color.WHITE);
-        header.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         add(header, BorderLayout.NORTH);
 
-        // Tabelle
-        String[] columns = {"Version-ID", "Hochgeladen von", "Typ", "Datum", "Kommentar", "Hat Feedback"};
+        String[] columns = {
+            "Version-ID", "Hochgeladen von", "Typ", "Datum", "Kommentar", "Hat Feedback"
+        };
+
         tableModel = new DefaultTableModel(columns, 0) {
+
+            /**
+             * Verhindert das Bearbeiten von Tabellenzellen.
+             *
+             * @param row Zeilenindex
+             * @param column Spaltenindex
+             * @return false
+             */
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
-        table = new JTable(tableModel);
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(30);
-        JScrollPane scrollPane = new JScrollPane(table);
-        add(scrollPane, BorderLayout.CENTER);
 
-        // Button Panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
-        buttonPanel.setBackground(Color.WHITE);
+        table = new JTable(tableModel);
+        add(new JScrollPane(table), BorderLayout.CENTER);
 
         JButton btnUpload = new JButton("Neue Version hochladen");
-        btnUpload.setBackground(new Color(40, 167, 69));
-        btnUpload.setForeground(Color.WHITE);
-        btnUpload.setFocusPainted(false);
-        btnUpload.setPreferredSize(new Dimension(220, 45));
-
         JButton btnFeedback = new JButton("Feedback hinzufügen");
-        btnFeedback.setBackground(new Color(0, 123, 255));
-        btnFeedback.setForeground(Color.WHITE);
-        btnFeedback.setFocusPainted(false);
-        btnFeedback.setPreferredSize(new Dimension(200, 45));
-
         JButton btnAnzeigen = new JButton("Feedbacks anzeigen");
-        btnAnzeigen.setBackground(new Color(255, 193, 7));
-        btnAnzeigen.setForeground(Color.BLACK);
-        btnAnzeigen.setFocusPainted(false);
-        btnAnzeigen.setPreferredSize(new Dimension(200, 45));
-
         JButton btnAktualisieren = new JButton("Aktualisieren");
-        btnAktualisieren.setBackground(new Color(108, 117, 125));
-        btnAktualisieren.setForeground(Color.WHITE);
-        btnAktualisieren.setFocusPainted(false);
-        btnAktualisieren.setPreferredSize(new Dimension(150, 45));
-
         JButton btnSchliessen = new JButton("Schließen");
-        btnSchliessen.setBackground(Color.GRAY);
-        btnSchliessen.setForeground(Color.WHITE);
-        btnSchliessen.setFocusPainted(false);
-        btnSchliessen.setPreferredSize(new Dimension(120, 45));
 
+        JPanel buttonPanel = new JPanel();
         buttonPanel.add(btnUpload);
         buttonPanel.add(btnFeedback);
         buttonPanel.add(btnAnzeigen);
@@ -99,7 +90,6 @@ public class ZwischenversionenVerwaltung extends JFrame {
         buttonPanel.add(btnSchliessen);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // Actions
         btnUpload.addActionListener(e -> versionHochladen());
         btnFeedback.addActionListener(e -> feedbackHinzufuegen());
         btnAnzeigen.addActionListener(e -> feedbacksAnzeigen());
@@ -110,10 +100,16 @@ public class ZwischenversionenVerwaltung extends JFrame {
         setVisible(true);
     }
 
+    /**
+     * Lädt die zugehörigen Zwischenversionen aus der Datenbank
+     * und aktualisiert die Tabellenanzeige.
+     */
     private void ladeVersionen() {
         tableModel.setRowCount(0);
+
         try {
             List<Version> versionen;
+
             if (rolle.equals("student")) {
                 versionen = VersionDAO.getVersionenForStudent(studentMnr);
             } else {
@@ -131,146 +127,142 @@ public class ZwischenversionenVerwaltung extends JFrame {
                 });
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                "Fehler beim Laden der Versionen: " + ex.getMessage(),
+                "Fehler beim Laden der Versionen",
                 "Fehler", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    /**
+     * Öffnet einen Dateiauswahldialog und lädt eine neue PDF-Zwischenversion hoch.
+     * Optional kann ein Kommentar zur Version hinterlegt werden.
+     */
     private void versionHochladen() {
-        // Datei auswählen
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Datei auswählen");
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-            "PDF-Dateien", "pdf"));
+        fileChooser.setFileFilter(
+            new javax.swing.filechooser.FileNameExtensionFilter("PDF-Dateien", "pdf")
+        );
 
-        int result = fileChooser.showOpenDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
-            
-            // Kommentar eingeben
-            String kommentar = JOptionPane.showInputDialog(this,
-                "Kommentar zur Version (optional):",
-                "Kommentar hinzufügen",
-                JOptionPane.QUESTION_MESSAGE);
+
+            String kommentar = JOptionPane.showInputDialog(
+                this,
+                "Kommentar zur Version"
+            );
 
             try {
-                String dateipfad = selectedFile.getAbsolutePath();
-                VersionDAO.zwischenversionHochladen(studentMnr, betreuerMnr, dateipfad, 
-                                                   kommentar, rolle);
-                JOptionPane.showMessageDialog(this,
-                    "Version wurde erfolgreich hochgeladen!\n" +
-                    (rolle.equals("student") ? "Ihr Betreuer wurde benachrichtigt." : 
-                                              "Der Student wurde benachrichtigt."),
-                    "Erfolg", JOptionPane.INFORMATION_MESSAGE);
+                VersionDAO.zwischenversionHochladen(
+                    studentMnr,
+                    betreuerMnr,
+                    selectedFile.getAbsolutePath(),
+                    kommentar,
+                    rolle
+                );
                 ladeVersionen();
             } catch (Exception ex) {
-                ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
-                    "Fehler beim Hochladen: " + ex.getMessage(),
+                    "Fehler beim Hochladen",
                     "Fehler", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
+    /**
+     * Fügt der ausgewählten Zwischenversion ein Feedback hinzu
+     * und speichert dieses in der Datenbank.
+     */
     private void feedbackHinzufuegen() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this,
-                "Bitte wählen Sie eine Version aus.",
-                "Keine Version ausgewählt", JOptionPane.WARNING_MESSAGE);
+                "Bitte Version auswählen",
+                "Hinweis", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int versionId = (int) tableModel.getValueAt(selectedRow, 0);
 
-        // Feedback eingeben
         JTextArea textArea = new JTextArea(10, 40);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
         JScrollPane scrollPane = new JScrollPane(textArea);
 
-        int result = JOptionPane.showConfirmDialog(this, scrollPane,
-            "Feedback eingeben", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (JOptionPane.showConfirmDialog(
+            this,
+            scrollPane,
+            "Feedback eingeben",
+            JOptionPane.OK_CANCEL_OPTION
+        ) == JOptionPane.OK_OPTION) {
 
-        if (result == JOptionPane.OK_OPTION) {
-            String feedback = textArea.getText();
-            if (feedback != null && !feedback.trim().isEmpty()) {
-                try {
-                    int verfasserMnr = rolle.equals("student") ? studentMnr : betreuerMnr;
-                    VersionDAO.feedbackHinzufuegen(versionId, feedback, verfasserMnr);
-                    JOptionPane.showMessageDialog(this,
-                        "Feedback wurde hinzugefügt. Die andere Partei wurde benachrichtigt.",
-                        "Erfolg", JOptionPane.INFORMATION_MESSAGE);
-                    ladeVersionen();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(this,
-                        "Fehler beim Hinzufügen: " + ex.getMessage(),
-                        "Fehler", JOptionPane.ERROR_MESSAGE);
-                }
+            try {
+                int verfasserMnr = rolle.equals("student")
+                    ? studentMnr
+                    : betreuerMnr;
+
+                VersionDAO.feedbackHinzufuegen(
+                    versionId,
+                    textArea.getText(),
+                    verfasserMnr
+                );
+                ladeVersionen();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                    "Fehler beim Speichern des Feedbacks",
+                    "Fehler", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
+    /**
+     * Zeigt alle Feedbackeinträge zur ausgewählten Version an.
+     */
     private void feedbacksAnzeigen() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this,
-                "Bitte wählen Sie eine Version aus.",
-                "Keine Version ausgewählt", JOptionPane.WARNING_MESSAGE);
+                "Bitte Version auswählen",
+                "Hinweis", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int versionId = (int) tableModel.getValueAt(selectedRow, 0);
 
         try {
-            List<Feedback> feedbacks = VersionDAO.getFeedbacksForVersion(versionId);
-            
+            List<Feedback> feedbacks =
+                VersionDAO.getFeedbacksForVersion(versionId);
+
             if (feedbacks.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
-                    "Keine Feedbacks vorhanden.",
-                    "Feedbacks", JOptionPane.INFORMATION_MESSAGE);
+                    "Keine Feedbacks vorhanden",
+                    "Information", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            // Feedback-Dialog erstellen
-            JDialog dialog = new JDialog(this, "Feedbacks - Version #" + versionId, true);
+            JDialog dialog = new JDialog(this, "Feedbacks", true);
             dialog.setSize(600, 400);
             dialog.setLocationRelativeTo(this);
-            dialog.setLayout(new BorderLayout());
 
             JTextArea feedbackArea = new JTextArea();
             feedbackArea.setEditable(false);
-            feedbackArea.setLineWrap(true);
-            feedbackArea.setWrapStyleWord(true);
-            feedbackArea.setFont(new Font("Arial", Font.PLAIN, 13));
 
             StringBuilder sb = new StringBuilder();
             for (Feedback f : feedbacks) {
-                sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
                 sb.append("Von: ").append(f.verfasser).append("\n");
                 sb.append("Datum: ").append(f.datum).append("\n\n");
                 sb.append(f.text).append("\n\n");
             }
 
             feedbackArea.setText(sb.toString());
-            JScrollPane scrollPane = new JScrollPane(feedbackArea);
-            dialog.add(scrollPane, BorderLayout.CENTER);
+            dialog.add(new JScrollPane(feedbackArea), BorderLayout.CENTER);
 
             JButton closeBtn = new JButton("Schließen");
             closeBtn.addActionListener(e -> dialog.dispose());
-            JPanel btnPanel = new JPanel();
-            btnPanel.add(closeBtn);
-            dialog.add(btnPanel, BorderLayout.SOUTH);
+            dialog.add(closeBtn, BorderLayout.SOUTH);
 
             dialog.setVisible(true);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                "Fehler beim Laden der Feedbacks: " + ex.getMessage(),
+                "Fehler beim Laden der Feedbacks",
                 "Fehler", JOptionPane.ERROR_MESSAGE);
         }
     }
