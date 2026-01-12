@@ -18,6 +18,11 @@ public class AntragsverwaltungBetreuer extends JFrame {
     private DefaultTableModel tableModel;
     private JTable table;
 
+    /**
+     * Konstruktor für die Antragsverwaltung.
+     *
+     * @param betreuerMnr Matrikelnummer des Betreuers
+     */
     public AntragsverwaltungBetreuer(int betreuerMnr) {
         this.betreuerMnr = betreuerMnr;
 
@@ -84,22 +89,26 @@ public class AntragsverwaltungBetreuer extends JFrame {
         buttonPanel.add(btnSchliessen);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // Actions
+        // Aktionen der Buttons
         btnGenehmigen.addActionListener(e -> antragGenehmigen());
         btnAblehnen.addActionListener(e -> antragAblehnen());
         btnAktualisieren.addActionListener(e -> ladeAntraege());
         btnSchliessen.addActionListener(e -> dispose());
 
+        // Anträge laden
         ladeAntraege();
         setVisible(true);
     }
 
+    /**
+     * Lädt alle offenen Anträge des Betreuers und zeigt sie in der Tabelle an.
+     */
     private void ladeAntraege() {
         tableModel.setRowCount(0);
         try {
             List<Antrag> antraege = AntragDAO.getAntraegeForBetreuer(betreuerMnr);
             for (Antrag a : antraege) {
-                if ("offen".equals(a.status)) { // Nur offene Anträge anzeigen
+                if ("offen".equals(a.status)) {
                     tableModel.addRow(new Object[]{
                         a.antragId,
                         a.studentName,
@@ -118,6 +127,10 @@ public class AntragsverwaltungBetreuer extends JFrame {
         }
     }
 
+    /**
+     * Genehmigt den ausgewählten Antrag und leitet ihn an den Studiendekan weiter.
+     * Zeigt entsprechende Benachrichtigungen an.
+     */
     private void antragGenehmigen() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
@@ -151,6 +164,9 @@ public class AntragsverwaltungBetreuer extends JFrame {
         }
     }
 
+    /**
+     * Lehnt den ausgewählten Antrag ab und informiert den Studenten über den Ablehnungsgrund.
+     */
     private void antragAblehnen() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
