@@ -3,8 +3,23 @@ package GUIKlassen;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Dialogfenster zur Anzeige einer Erfolgsmeldung.
+ *
+ * Der Dialog informiert den Nutzer darüber, dass eine Aktion erfolgreich
+ * abgeschlossen wurde und bietet die Möglichkeit, zum vorherigen Bereich
+ * zurückzukehren.
+ */
 public class SuccessDialog extends JDialog {
 
+    /**
+     * Erstellt ein modales Erfolgsdialogfenster.
+     *
+     * Der Dialog wird relativ zum übergebenen Hauptfenster positioniert
+     * und blockiert die Eingabe, bis er geschlossen wird.
+     *
+     * @param parent übergeordnetes Hauptfenster
+     */
     public SuccessDialog(JFrame parent) {
         super(parent, "Erfolg", true);
         setSize(500, 350);
