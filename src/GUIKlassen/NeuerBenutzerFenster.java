@@ -12,41 +12,51 @@ import java.sql.ResultSet;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-
-
 public class NeuerBenutzerFenster extends BaseFrame {
+    
+    // Statische Variablen zum Speichern der zuletzt erstellten Benutzerdaten
+    private static String lastCreatedEmail = "";
+    private static String lastCreatedPassword = "";
+
+    public static String getLastCreatedEmail() {
+        return lastCreatedEmail;
+    }
+    
+    public static String getLastCreatedPassword() {
+        return lastCreatedPassword;
+    }
+    
+    public static void clearLastCreatedData() {
+        lastCreatedEmail = "";
+        lastCreatedPassword = "";
+    }
 
     public NeuerBenutzerFenster() {
         super("Neuer Benutzer - Hochschule");
         JButton createButton = new JButton("Benutzer erstellen");
         
-        
-     // =========================
-     // FENSTER & FORMULAR-BREITE
-     // =========================
-     int windowWidth = BaseFrame.WIDTH;
-     int formWidth = 320;
-     int labelWidth = 120;
-     int fieldWidth = 180;
+        // =========================
+        // FENSTER & FORMULAR-BREITE
+        // =========================
+        int windowWidth = BaseFrame.WIDTH;
+        int formWidth = 320;
+        int labelWidth = 120;
+        int fieldWidth = 180;
 
-     // Formular mittig ausrichten
-     int startX = (windowWidth - formWidth) / 2;
-     int labelX = startX;
-     int fieldX = startX + labelWidth + 10;
+        // Formular mittig ausrichten
+        int startX = (windowWidth - formWidth) / 2;
+        int labelX = startX;
+        int fieldX = startX + labelWidth + 10;
 
-     // Start-Y für Formular
-     int y = 230;
-        
-        
+        // Start-Y für Formular
+        int y = 230;
         
         getContentPane().setBackground(UIColors.BACKGROUND);
 
         // Logo oben mittig
-       
         int logoWidth = 200;
         int logoX = (BaseFrame.WIDTH - logoWidth) / 2;
         add(UIImageLoader.createLogoLabel(logoX, 20, logoWidth, 100));
-       
 
         // Roter Header ähnlich DashboardStudent
         JLabel header = new JLabel("Neuen Benutzer erstellen", SwingConstants.CENTER);
@@ -58,94 +68,87 @@ public class NeuerBenutzerFenster extends BaseFrame {
         add(header);
 
         // Formularfelder
+        // =======================
+        // Benutzername
+        // =======================
+        JLabel nameLabel = new JLabel("Benutzername:");
+        nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        nameLabel.setBounds(labelX, y, labelWidth, 25);
+        add(nameLabel);
+
+        JTextField nameField = new JTextField();
+        nameField.setBounds(fieldX, y, fieldWidth, 25);
+        add(nameField);
+        nameField.addActionListener(e -> createButton.doClick());
+
+        y += 40;
+
+        // =======================
+        // Passwort
+        // =======================
+        JLabel passLabel = new JLabel("Passwort:");
+        passLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        passLabel.setBounds(labelX, y, labelWidth, 25);
+        add(passLabel);
+
+        JPasswordField passField = new JPasswordField();
+        passField.setBounds(fieldX, y, fieldWidth, 25);
+        add(passField);
         
-     // =======================
-     // Benutzername
-     // =======================
-     JLabel nameLabel = new JLabel("Benutzername:");
-     nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
-     nameLabel.setBounds(labelX, y, labelWidth, 25);
-     add(nameLabel);
+        JLabel passHint = new JLabel("Mindestens 6 Zeichen");
+        passHint.setFont(new Font("Arial", Font.ITALIC, 11));
+        passHint.setForeground(Color.GRAY);
+        passHint.setBounds(fieldX, y + 28, fieldWidth, 15);
+        add(passHint);
+        
+        passField.addActionListener(e -> createButton.doClick());
 
-     JTextField nameField = new JTextField();
-     nameField.setBounds(fieldX, y, fieldWidth, 25);
-     add(nameField);
-     nameField.addActionListener(e -> createButton.doClick());
+        y += 60;
 
-     y += 40;
+        // =======================
+        // E-Mail
+        // =======================
+        JLabel emailLabel = new JLabel("E-Mail:");
+        emailLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        emailLabel.setBounds(labelX, y, labelWidth, 25);
+        add(emailLabel);
 
-     // =======================
-     // Passwort
-     // =======================
-     JLabel passLabel = new JLabel("Passwort:");
-     passLabel.setFont(new Font("Arial", Font.BOLD, 14));
-     passLabel.setBounds(labelX, y, labelWidth, 25);
-     add(passLabel);
+        JTextField emailField = new JTextField();
+        emailField.setBounds(fieldX, y, fieldWidth, 25);
+        add(emailField);
+        emailField.addActionListener(e -> createButton.doClick());
 
-     JPasswordField passField = new JPasswordField();
-     passField.setBounds(fieldX, y, fieldWidth, 25);
-     add(passField);
-     
-     JLabel passHint = new JLabel("Mindestens 6 Zeichen");
-     passHint.setFont(new Font("Arial", Font.ITALIC, 11));
-     passHint.setForeground(Color.GRAY);
-     passHint.setBounds(fieldX, y + 28, fieldWidth, 15);
-     add(passHint);
-     
-     passField.addActionListener(e -> createButton.doClick());
+        y += 55;
+        
+        nameField.addActionListener(e -> createButton.doClick());
+        passField.addActionListener(e -> createButton.doClick());
+        emailField.addActionListener(e -> createButton.doClick());
 
-     y += 60;
-     
-     
+        // =======================
+        // Rolle
+        // =======================
+        JLabel rolleLabel = new JLabel("Rolle:");
+        rolleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        rolleLabel.setBounds(labelX, y, labelWidth, 25);
+        add(rolleLabel);
 
-     // =======================
-     // E-Mail
-     // =======================
-     JLabel emailLabel = new JLabel("E-Mail:");
-     emailLabel.setFont(new Font("Arial", Font.BOLD, 14));
-     emailLabel.setBounds(labelX, y, labelWidth, 25);
-     add(emailLabel);
+        String[] rollen = {"Student", "Betreuer", "Dekan"};
+        JComboBox<String> rolleBox = new JComboBox<>(rollen);
+        rolleBox.setBounds(fieldX, y, fieldWidth, 25);
+        add(rolleBox);
 
-     JTextField emailField = new JTextField();
-     emailField.setBounds(fieldX, y, fieldWidth, 25);
-     add(emailField);
-     emailField.addActionListener(e -> createButton.doClick());
-
-     y += 55;
-     
-     nameField.addActionListener(e -> createButton.doClick());
-     passField.addActionListener(e -> createButton.doClick());
-     emailField.addActionListener(e -> createButton.doClick());
-
-     // =======================
-     // Rolle
-     // =======================
-     JLabel rolleLabel = new JLabel("Rolle:");
-     rolleLabel.setFont(new Font("Arial", Font.BOLD, 14));
-     rolleLabel.setBounds(labelX, y, labelWidth, 25);
-     add(rolleLabel);
-
-     String[] rollen = {"Student", "Betreuer", "Dekan"};
-     JComboBox<String> rolleBox = new JComboBox<>(rollen);
-     rolleBox.setBounds(fieldX, y, fieldWidth, 25);
-     add(rolleBox);
-
-     y += 60;
-      
-       
+        y += 60;
         
         // Erstellen Button
-        
-        
-     int buttonY = y + 10;
+        int buttonY = y + 10;
 
-     createButton.setBounds(
-         startX + (formWidth - 180) / 2,
-         buttonY,
-         180,
-         35
-     );
-     
+        createButton.setBounds(
+            startX + (formWidth - 180) / 2,
+            buttonY,
+            180,
+            35
+        );
+        
         createButton.setBackground(UIColors.PRIMARY_BLUE);
         createButton.setForeground(UIColors.TEXT_WHITE);
         createButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -157,13 +160,11 @@ public class NeuerBenutzerFenster extends BaseFrame {
         y += 20;
 
         createButton.addActionListener(e -> {
-
             String user = nameField.getText().trim();
             String pass = new String(passField.getPassword());
             String email = emailField.getText().trim();
             String rolle = (String) rolleBox.getSelectedItem();
             
-
             // =========================
             // 1. Pflichtfelder prüfen
             // =========================
@@ -194,7 +195,6 @@ public class NeuerBenutzerFenster extends BaseFrame {
             // =========================
             // 4. AB HIER Datenbank
             // =========================
-
             try {
                 Connection conn = DBConnection.getConnection();
                 
@@ -213,30 +213,37 @@ public class NeuerBenutzerFenster extends BaseFrame {
                 }
 
                 String sql = """
-                	    INSERT INTO studentendb (Nachname, Vorname, email, rolle, passwort)
-                	    VALUES (?, ?, ?, ?, ?)
-                	""";
+                    INSERT INTO studentendb (Nachname, Vorname, email, rolle, passwort)
+                    VALUES (?, ?, ?, ?, ?)
+                """;
 
-                	PreparedStatement ps = conn.prepareStatement(sql);
-                	ps.setString(1, user);
-                	ps.setString(2, user);
-                	ps.setString(3, email);
-                	ps.setString(4, rolle);
-                	ps.setString(5, PasswortUtil.hash(pass));
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setString(1, user);
+                ps.setString(2, user);
+                ps.setString(3, email);
+                ps.setString(4, rolle);
+                ps.setString(5, PasswortUtil.hash(pass));
 
-                	ps.executeUpdate();
-                	conn.close();
+                ps.executeUpdate();
+                conn.close();
 
-                JOptionPane.showMessageDialog(null, "Benutzer erfolgreich erstellt!");
+                // NEU: Erfolgsmeldung mit Auto-Close
+                JOptionPane.showMessageDialog(this, 
+                    "Benutzer erfolgreich erstellt!\nSie können sich jetzt mit Ihren Daten einloggen.");
+                
+                // NEU: Daten für automatisches Login speichern
+                lastCreatedEmail = email;
+                lastCreatedPassword = pass;
+                
+                // NEU: Zum Login-Fenster zurückkehren
                 dispose();
+                new LoginFenster(); // Login-Fenster öffnet sich mit vorausgefüllten Daten
 
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
-                	    "Benutzer konnte nicht erstellt werden.");
+                    "Benutzer konnte nicht erstellt werden: " + ex.getMessage());
             }
-        
-        
         });
 
         JLabel backToLoginLabel =
@@ -257,14 +264,15 @@ public class NeuerBenutzerFenster extends BaseFrame {
 
         add(backToLoginLabel);
         	
-        	backToLoginLabel.addMouseListener(new MouseAdapter() {
-        	    @Override
-        	    public void mouseClicked(MouseEvent e) {
-        	        dispose();            // 🔴 NeuerBenutzerFenster schließen
-        	        new LoginFenster();   // 🔵 LoginFenster öffnen
-        	    }
-        	});
-        
+        backToLoginLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // NEU: Daten löschen beim manuellen Wechsel
+                clearLastCreatedData();
+                dispose();
+                new LoginFenster();
+            }
+        });
         
         setVisible(true);
         setAlwaysOnTop(true);
