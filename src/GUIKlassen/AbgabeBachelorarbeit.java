@@ -21,6 +21,7 @@ public class AbgabeBachelorarbeit extends JPanel {
 
 	/**
 	 * Konstruktor für das Upload-Panel.
+	 * @param mnr Matrikelnummer
 	 */
 	public AbgabeBachelorarbeit(int mnr) {
 		this.mnr = mnr;
@@ -179,6 +180,7 @@ public class AbgabeBachelorarbeit extends JPanel {
 	// Test
 	/**
 	 * Test-Main für das Upload-Panel.
+	 * @param args Argumente
 	 */
 	public static void main(String[] args) {
 		JFrame frame = new JFrame("Bachelorarbeit Upload");
