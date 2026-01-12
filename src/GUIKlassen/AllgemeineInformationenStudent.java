@@ -3,7 +3,6 @@ package GUIKlassen;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import Datenbank.AllgemeineInformationenDAO;
 import Datenbank.AntragDAO;
 import Datenbank.DBConnection;
 import java.sql.Connection;
@@ -13,8 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * JPanel zur Anzeige und Eingabe allgemeiner Informationen eines Studenten
- * im Rahmen der Bachelorarbeit.
+ * Panel zur Eingabe und Anzeige allgemeiner Informationen eines Studenten.
  */
 public class AllgemeineInformationenStudent extends JPanel {
 
@@ -23,23 +21,25 @@ public class AllgemeineInformationenStudent extends JPanel {
     private JTextField tfThema;
     private JTextField tfUnternehmen;
     private JTextField tfZeitraum;
-    private JComboBox<String> cbBetreuerHFT; // NEU: ComboBox statt TextField
+    private JComboBox<String> cbBetreuerHFT;
     private JTextField tfBetreuerUnternehmen;
     private JTextField tfNdaPfad;
     private JCheckBox cbNdaJa;
     private JCheckBox cbNdaNein;
     private int mnr;
-    
-    // NEU: Liste für Betreuer
     private List<String> betreuerListe = new ArrayList<>();
 
+    /**
+     * Erzeugt das Panel für die allgemeinen Informationen des Studenten.
+     *
+     * @param mnr Matrikelnummer des Studenten
+     */
     public AllgemeineInformationenStudent(int mnr) {
         this.mnr = mnr;
 
         setLayout(null);
         setBackground(Color.WHITE);
 
-        // Titel
         JLabel title = new JLabel("Allgemeine Informationen");
         title.setOpaque(true);
         title.setBackground(new Color(0, 102, 204));
@@ -50,50 +50,41 @@ public class AllgemeineInformationenStudent extends JPanel {
 
         int y = 60;
 
-        // Eingabefelder
         tfThema = addField("Thema:", y);
         y += 55;
         tfUnternehmen = addField("Unternehmen, Ort:", y);
         y += 55;
         tfZeitraum = addField("Zeitraum:", y);
         y += 55;
-        
-        // NEU: Betreuer HFT als ComboBox
+
         JLabel betreuerLabel = new JLabel("Betreuer an der HFT:");
         betreuerLabel.setBounds(20, y, 250, 20);
         add(betreuerLabel);
-        
-        // Betreuerliste aus Datenbank laden
+
         ladeBetreuerAusDatenbank();
         cbBetreuerHFT = new JComboBox<>(betreuerListe.toArray(new String[0]));
         cbBetreuerHFT.setBounds(20, y + 20, 330, 30);
-        cbBetreuerHFT.setEditable(true); // Ermöglicht auch manuelle Eingabe
+        cbBetreuerHFT.setEditable(true);
         add(cbBetreuerHFT);
-        
         y += 55;
+
         tfBetreuerUnternehmen = addField("Betreuer im Unternehmen:", y);
         y += 60;
 
-        // NDA Auswahl
         JLabel ndaLabel = new JLabel("NDA nötig?");
         ndaLabel.setBounds(20, y, 200, 20);
         add(ndaLabel);
 
         cbNdaJa = new JCheckBox("Ja");
         cbNdaNein = new JCheckBox("Nein");
-
         cbNdaJa.setBounds(140, y, 50, 20);
         cbNdaNein.setBounds(200, y, 70, 20);
-
         cbNdaJa.addActionListener(e -> cbNdaNein.setSelected(false));
         cbNdaNein.addActionListener(e -> cbNdaJa.setSelected(false));
-
         add(cbNdaJa);
         add(cbNdaNein);
-
         y += 50;
 
-        // NDA Upload
         JLabel uploadLabel = new JLabel("NDA Upload:");
         uploadLabel.setBounds(20, y, 200, 20);
         add(uploadLabel);
@@ -114,10 +105,8 @@ public class AllgemeineInformationenStudent extends JPanel {
                 tfNdaPfad.setText(file.getAbsolutePath());
             }
         });
-
         y += 100;
 
-        // Zurück-Button (links)
         JButton zurueckBtn = new JButton("Zurück");
         zurueckBtn.setBounds(20, y, 160, 40);
         zurueckBtn.setBackground(new Color(0, 102, 204));
@@ -126,7 +115,6 @@ public class AllgemeineInformationenStudent extends JPanel {
         zurueckBtn.setBorderPainted(false);
         add(zurueckBtn);
 
-        // Absenden-Button (rechts)
         JButton speichernBtn = new JButton("Absenden");
         speichernBtn.setBounds(400, y, 160, 40);
         speichernBtn.setBackground(new Color(0, 102, 204));
@@ -135,17 +123,22 @@ public class AllgemeineInformationenStudent extends JPanel {
         speichernBtn.setBorderPainted(false);
         add(speichernBtn);
 
-        // Aktionen
         zurueckBtn.addActionListener(e -> {
             SwingUtilities.getWindowAncestor(this).dispose();
         });
 
         speichernBtn.addActionListener(e -> speichern());
-        
-        // Gespeicherte Daten beim Start laden
+
         ladeGespeicherteDaten();
     }
 
+    /**
+     * Fügt ein Textfeld mit Label hinzu.
+     *
+     * @param label Beschriftung
+     * @param y Position Y
+     * @return Das erzeugte Textfeld
+     */
     private JTextField addField(String label, int y) {
         JLabel l = new JLabel(label);
         l.setBounds(20, y, 250, 20);
@@ -157,18 +150,18 @@ public class AllgemeineInformationenStudent extends JPanel {
 
         return tf;
     }
-    
-    // NEU: Betreuer aus Datenbank laden
+
+    /**
+     * Lädt die Liste der Betreuer aus der Datenbank.
+     */
     private void ladeBetreuerAusDatenbank() {
         betreuerListe.clear();
-        betreuerListe.add(""); // Leerer Eintrag für keine Auswahl
-        
+        betreuerListe.add("");
+
         try (Connection conn = DBConnection.getConnection()) {
             String sql = "SELECT Vorname, Nachname, MNR FROM studentendb WHERE rolle = 'betreuer' ORDER BY Nachname, Vorname";
-            
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ResultSet rs = ps.executeQuery();
-                
                 while (rs.next()) {
                     String name = rs.getString("Vorname") + " " + rs.getString("Nachname");
                     int betreuerMnr = rs.getInt("MNR");
@@ -180,22 +173,23 @@ public class AllgemeineInformationenStudent extends JPanel {
             JOptionPane.showMessageDialog(this, "Fehler beim Laden der Betreuerliste");
         }
     }
-    
-    // NEU: MNR aus Betreuer-String extrahieren
+
+    /**
+     * Extrahiert die Betreuer-Matrikelnummer aus einem String.
+     *
+     * @param betreuerString Betreuer-String
+     * @return Matrikelnummer oder null
+     */
     private Integer extrahiereBetreuerMnr(String betreuerString) {
-        if (betreuerString == null || betreuerString.isEmpty()) {
-            return null;
-        }
-        
-        // Sucht nach "MNR: XXXX)" im String
+        if (betreuerString == null || betreuerString.isEmpty()) return null;
+
         int startIndex = betreuerString.indexOf("MNR: ");
         if (startIndex != -1) {
-            startIndex += 5; // Länge von "MNR: "
+            startIndex += 5;
             int endIndex = betreuerString.indexOf(")", startIndex);
             if (endIndex != -1) {
                 try {
-                    String mnrStr = betreuerString.substring(startIndex, endIndex).trim();
-                    return Integer.parseInt(mnrStr);
+                    return Integer.parseInt(betreuerString.substring(startIndex, endIndex).trim());
                 } catch (NumberFormatException e) {
                     return null;
                 }
@@ -203,40 +197,38 @@ public class AllgemeineInformationenStudent extends JPanel {
         }
         return null;
     }
-    
-    // NEU: Betreuername ohne MNR extrahieren
+
+    /**
+     * Extrahiert den Betreuername ohne MNR aus einem String.
+     *
+     * @param betreuerString Betreuer-String
+     * @return Betreuername
+     */
     private String extrahiereBetreuername(String betreuerString) {
-        if (betreuerString == null || betreuerString.isEmpty()) {
-            return "";
-        }
-        
-        // Entfernt den "(MNR: XXXX)" Teil
+        if (betreuerString == null || betreuerString.isEmpty()) return "";
         int mnrIndex = betreuerString.indexOf(" (MNR:");
-        if (mnrIndex != -1) {
-            return betreuerString.substring(0, mnrIndex).trim();
-        }
+        if (mnrIndex != -1) return betreuerString.substring(0, mnrIndex).trim();
         return betreuerString.trim();
     }
 
+    /**
+     * Lädt gespeicherte Daten des Studenten aus der Datenbank.
+     */
     private void ladeGespeicherteDaten() {
         try (Connection conn = DBConnection.getConnection()) {
             String sql = "SELECT thema, unternehmen, zeitraum, betreuer_hft, " +
-                        "betreuer_unternehmen, nda_noetig, nda_dateipfad " +
-                        "FROM allgemeine_informationen WHERE mnr = ?";
-            
+                         "betreuer_unternehmen, nda_noetig, nda_dateipfad " +
+                         "FROM allgemeine_informationen WHERE mnr = ?";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setInt(1, mnr);
                 ResultSet rs = ps.executeQuery();
-                
                 if (rs.next()) {
                     tfThema.setText(rs.getString("thema"));
                     tfUnternehmen.setText(rs.getString("unternehmen"));
                     tfZeitraum.setText(rs.getString("zeitraum"));
-                    
-                    // Betreuer HFT setzen
+
                     String betreuerHft = rs.getString("betreuer_hft");
                     if (betreuerHft != null && !betreuerHft.isEmpty()) {
-                        // Suche ob Betreuer in der Liste ist
                         boolean gefunden = false;
                         for (int i = 0; i < cbBetreuerHFT.getItemCount(); i++) {
                             String item = cbBetreuerHFT.getItemAt(i);
@@ -246,33 +238,21 @@ public class AllgemeineInformationenStudent extends JPanel {
                                 break;
                             }
                         }
-                        // Falls nicht in Liste, als manueller Text setzen
-                        if (!gefunden) {
-                            cbBetreuerHFT.setSelectedItem(betreuerHft);
-                        }
+                        if (!gefunden) cbBetreuerHFT.setSelectedItem(betreuerHft);
                     }
-                    
+
                     tfBetreuerUnternehmen.setText(rs.getString("betreuer_unternehmen"));
-                    
+
                     boolean ndaNoetig = rs.getBoolean("nda_noetig");
                     if (!rs.wasNull()) {
-                        if (ndaNoetig) {
-                            cbNdaJa.setSelected(true);
-                            cbNdaNein.setSelected(false);
-                        } else {
-                            cbNdaJa.setSelected(false);
-                            cbNdaNein.setSelected(true);
-                        }
+                        cbNdaJa.setSelected(ndaNoetig);
+                        cbNdaNein.setSelected(!ndaNoetig);
                     }
-                    
+
                     String ndaPfad = rs.getString("nda_dateipfad");
-                    if (ndaPfad != null && !ndaPfad.isEmpty()) {
-                        tfNdaPfad.setText(ndaPfad);
-                    }
-                    
-                    if (!rs.getString("thema").isEmpty()) {
-                        disableAll();
-                    }
+                    if (ndaPfad != null && !ndaPfad.isEmpty()) tfNdaPfad.setText(ndaPfad);
+
+                    if (!rs.getString("thema").isEmpty()) disableAll();
                 }
             }
         } catch (Exception e) {
@@ -280,9 +260,11 @@ public class AllgemeineInformationenStudent extends JPanel {
         }
     }
 
+    /**
+     * Speichert die eingegebenen Daten in der Datenbank.
+     */
     private void speichern() {
         try {
-            // Validierung
             if (tfThema.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Bitte geben Sie ein Thema ein!");
                 return;
@@ -291,23 +273,17 @@ public class AllgemeineInformationenStudent extends JPanel {
                 JOptionPane.showMessageDialog(this, "Bitte geben Sie ein Unternehmen ein!");
                 return;
             }
-            
-            // Betreuername extrahieren (ohne MNR)
+
             String betreuerHft = "";
             Object selectedItem = cbBetreuerHFT.getSelectedItem();
-            if (selectedItem != null) {
-                betreuerHft = extrahiereBetreuername(selectedItem.toString());
-            }
-            
-            // Betreuer MNR extrahieren
+            if (selectedItem != null) betreuerHft = extrahiereBetreuername(selectedItem.toString());
+
             Integer betreuerMnr = extrahiereBetreuerMnr(selectedItem != null ? selectedItem.toString() : "");
-            
             if (betreuerMnr == null) {
                 JOptionPane.showMessageDialog(this, "Bitte wählen Sie einen Betreuer aus der Liste aus!");
                 return;
             }
-            
-            // Antrag erstellen (NEU: verwendet AntragDAO statt AllgemeineInformationenDAO)
+
             AntragDAO.antragErstellen(
                     mnr,
                     tfThema.getText().trim(),
@@ -322,8 +298,7 @@ public class AllgemeineInformationenStudent extends JPanel {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "<html><center>Antrag erfolgreich eingereicht!<br>" + 
-                    "Der Betreuer " + betreuerHft + " wurde benachrichtigt.</center></html>",
+                    "Antrag erfolgreich eingereicht! Der Betreuer " + betreuerHft + " wurde benachrichtigt.",
                     "Erfolg",
                     JOptionPane.INFORMATION_MESSAGE
             );
@@ -332,15 +307,13 @@ public class AllgemeineInformationenStudent extends JPanel {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Fehler beim Speichern!",
-                    "Fehler",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "Fehler beim Speichern!", "Fehler", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    /**
+     * Deaktiviert alle Eingabefelder und Buttons.
+     */
     private void disableAll() {
         tfThema.setEditable(false);
         tfUnternehmen.setEditable(false);
@@ -348,7 +321,6 @@ public class AllgemeineInformationenStudent extends JPanel {
         cbBetreuerHFT.setEnabled(false);
         tfBetreuerUnternehmen.setEditable(false);
         tfNdaPfad.setEditable(false);
-
         cbNdaJa.setEnabled(false);
         cbNdaNein.setEnabled(false);
 
