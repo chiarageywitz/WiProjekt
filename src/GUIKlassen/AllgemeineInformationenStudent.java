@@ -16,7 +16,9 @@ public class AllgemeineInformationenStudent extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    /** Textfelder für die allgemeinen Informationen */
+    /** 
+     * Textfelder für die allgemeinen Informationen
+     * */
     private JTextField tfThema;
     private JTextField tfUnternehmen;
     private JTextField tfZeitraum;
