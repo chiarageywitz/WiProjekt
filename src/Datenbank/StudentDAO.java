@@ -1,3 +1,7 @@
+/**
+ * Package fuer den Zugriff auf die Datenbank.
+ * Enthaelt DAO Klassen fuer Studenten.
+ */
 package Datenbank;
 
 import java.sql.Connection;
@@ -6,27 +10,52 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DAO Klasse fuer den Zugriff auf Studentendaten. Diese Klasse ermoeglicht die
+ * Suche nach Studenten sowie das Laden einzelner oder aller Studenten.
+ */
 public class StudentDAO {
 
-	// ---------------- STUDENT INFO CLASS ----------------
+	/**
+	 * Datenklasse fuer Studenteninformationen. Enthaelt Matrikelnummer, Name und
+	 * Thema.
+	 */
 	public static class StudentInfo {
 		public int mnr;
-		public String name; // ✅ nur EIN Name
+		public String name;
 		public String thema;
 
+		/**
+		 * Erstellt ein StudentInfo Objekt.
+		 *
+		 * @param mnr   Matrikelnummer des Studenten
+		 * @param name  Name des Studenten
+		 * @param thema Thema der Arbeit
+		 */
 		public StudentInfo(int mnr, String name, String thema) {
 			this.mnr = mnr;
 			this.name = name;
 			this.thema = thema;
 		}
 
+		/**
+		 * Gibt eine lesbare Darstellung des Studenten zurueck.
+		 *
+		 * @return Name und Matrikelnummer als Text
+		 */
 		@Override
 		public String toString() {
 			return name + " (" + mnr + ")";
 		}
 	}
 
-	// ---------------- STUDENTEN SUCHE ----------------
+	/**
+	 * Sucht Studenten anhand des Vornamens.
+	 *
+	 * @param name Name oder Namensbestandteil
+	 * @return Liste gefundener Studenten
+	 * @throws Exception Fehler beim Datenbankzugriff
+	 */
 	public static List<StudentInfo> sucheStudenten(String name) throws Exception {
 		List<StudentInfo> result = new ArrayList<>();
 
@@ -43,15 +72,20 @@ public class StudentDAO {
 
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-				result.add(new StudentInfo(rs.getInt("MNR"), rs.getString("Vorname"), // ✅ Benutzername
-						rs.getString("thema")));
+				result.add(new StudentInfo(rs.getInt("MNR"), rs.getString("Vorname"), rs.getString("thema")));
 			}
 		}
 
 		return result;
 	}
 
-	// ---------------- EINZELNER STUDENT ----------------
+	/**
+	 * Liefert die Informationen eines einzelnen Studenten.
+	 *
+	 * @param mnr Matrikelnummer des Studenten
+	 * @return StudentInfo Objekt oder null falls nicht gefunden
+	 * @throws Exception Fehler beim Datenbankzugriff
+	 */
 	public static StudentInfo getStudentInfo(int mnr) throws Exception {
 		String sql = """
 				    SELECT s.MNR, s.Vorname, a.thema
@@ -73,7 +107,12 @@ public class StudentDAO {
 		}
 	}
 
-	// ---------------- ALLE STUDENTEN (nur Rolle "student") ----------------
+	/**
+	 * Liefert alle Studenten mit der Rolle student.
+	 *
+	 * @return Liste aller Studenten
+	 * @throws Exception Fehler beim Datenbankzugriff
+	 */
 	public static List<StudentInfo> getAllStudents() throws Exception {
 		List<StudentInfo> result = new ArrayList<>();
 
@@ -94,5 +133,4 @@ public class StudentDAO {
 
 		return result;
 	}
-
 }
